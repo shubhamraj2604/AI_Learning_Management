@@ -1,5 +1,6 @@
 import DashBoardHeader from "./_components/DashBoardHeader";
 import Sidebar from "./_components/Sidebar";
+import { Toaster } from 'react-hot-toast';
 
 export default function DashboardLayout({
   children,
@@ -16,6 +17,7 @@ export default function DashboardLayout({
           <div className="p-10">
           {children}
           </div>
+          <Toaster />
     </div>
     </div>
   )

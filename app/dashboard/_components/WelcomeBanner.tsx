@@ -7,7 +7,7 @@ function WelcomeBanner() {
   if (!isLoaded) return null;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 p-6 text-white shadow-lg">
+    <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-indigo-600 via-blue-600 to-cyan-500 p-6 text-white shadow-lg">
       
       {/* Decorative blur */}
       <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/20 blur-3xl" />

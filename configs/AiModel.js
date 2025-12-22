@@ -27,5 +27,11 @@ export const generateNotes = async (prompt) => {
   });
 
   const result = await model.generateContent(prompt);
-  return result.response.text();
+  const text = result?.response?.text();
+
+  if (!text) {
+    throw new Error("Gemini returned empty response");
+  }
+
+  return text;
 };
