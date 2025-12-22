@@ -1,7 +1,7 @@
 import { inngest } from "./client";
 import db from '@/configs/db'
 import { eq } from 'drizzle-orm';
-import {USER_TABLE , Chapter_Notes_Table} from '@/configs/schema'
+import {USER_TABLE , Chapter_Notes_Table , Study_Material_Table} from '@/configs/schema'
 import { generateNotes } from "../configs/AiModel";
 
 export const helloWorld = inngest.createFunction(
@@ -56,31 +56,57 @@ export const createNotes = inngest.createFunction(
       throw new Error("No chapters found");
     }
 
-    // ✅ ONE STEP PER CHAPTER
-    for (let index = 0; index < chapters.length; index++) {
-      const chapter = chapters[index];
+    // ✅ SINGLE STEP FOR ALL CHAPTERS
+    await step.run("Generate all chapter notes", async () => {
+      for (let index = 0; index < chapters.length; index++) {
+        const chapter = chapters[index];
 
-      await step.run(`Generate notes chapter ${index}`, async () => {
-        const prompt = `
-Generate exam material detailed content for each chapter.
-- Include all topics
-- Output ONLY HTML (no html, head, body tags)
+const prompt = `
+You are generating concise study notes for a learning platform.
 
-Chapter:
+STRICT RULES:
+- Cover EVERY topic provided (do not skip anything)
+- Keep notes SHORT, crisp, and exam/revision friendly
+- Use bullet points only (no long paragraphs)
+- Explain concepts simply (1–3 bullets per subtopic max)
+- DO NOT add extra topics
+- DO NOT repeat content
+- DO NOT regenerate if content already exists
+- Generate notes in ONE response only
+
+FORMAT RULES:
+- Output ONLY valid HTML
+- Use <h3> for chapter title
+- Use <h4> for main topics
+- Use <ul><li> for points
+- No <html>, <head>, or <body> tags
+- No markdown, no explanations outside HTML
+
+GOAL:
+Notes should be:
+- Easy to understand
+- Fast to revise before exams/interviews
+- Balanced for theory + practical understanding
+
+INPUT CHAPTER DATA:
 ${JSON.stringify(chapter)}
-        `;
+`;
 
         const aiResp = await generateNotes(prompt);
+
+        if (!aiResp || aiResp.trim().length === 0) {
+          throw new Error(`Empty AI response for chapter ${index}`);
+        }
 
         await db.insert(Chapter_Notes_Table).values({
           chapterId: index,
           courseId: course.courseId,
           notes: aiResp,
         });
-      });
-    }
+      }
+    });
 
-    // ✅ Status update AFTER all chapters
+    // ✅ Status update
     await step.run("Update course status", async () => {
       await db
         .update(Study_Material_Table)
@@ -91,3 +117,4 @@ ${JSON.stringify(chapter)}
     return { status: "completed" };
   }
 );
+
