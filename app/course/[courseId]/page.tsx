@@ -7,6 +7,8 @@ import toast from "react-hot-toast";
 import CourseIntroCard from "./_components/CourseIntroCard";
 import StudyMaterial from "./_components/StudyMateriaL";
 import ChapterList from "./_components/ChapterList";
+import { Loader, RefreshCw } from "lucide-react";
+
 interface Course {
   id: number;
   courseId: string;
@@ -19,8 +21,10 @@ interface Course {
 function Course() {
   const { courseId } = useParams();
   const [course, setcourse] = useState<Course | null>(null);
+  const [loading , setLoading ] = useState<any>(false);
   const getCourseDetails = async () => {
     try {
+      setLoading(true);
       const resp = await axios.get("/api/show-courses", {
         params: {
           courseId: courseId,
@@ -31,6 +35,8 @@ function Course() {
     } catch (error) {
         console.log(error)
         toast('error');
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -38,15 +44,25 @@ function Course() {
       if (courseId) getCourseDetails();
   },[courseId]); 
 
+ if (loading) {
+  return (
+    <div className="flex items-center justify-center mt-20 gap-2">
+      {/* <RefreshCw className="w-5 h-5 animate-spin" /> */}
+      <Loader className="animate-spin"/>
+      <span className="font-bold">Loading...</span>
+    </div>
+  );
+}
+
+
   return (
     <div>
-      <DashBoardHeader />
-      <div className="mx-10 md:mx-36 lg:px-60 mt-10 mb-10">
+      <div className="">
 
       {/* CourseIntro */}
       <CourseIntroCard course = {course}/>
       {/* Study Material */}
-      <StudyMaterial/>
+      <StudyMaterial courseId = {courseId}/>
       {/* Chapter List */}
       <ChapterList course = {course} />
       </div>
