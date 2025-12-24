@@ -60,37 +60,56 @@ export const createNotes = inngest.createFunction(
     await step.run("Generate all chapter notes", async () => {
       for (let index = 0; index < chapters.length; index++) {
         const chapter = chapters[index];
-
 const prompt = `
-You are generating concise study notes for a learning platform.
+You are generating high-quality exam-oriented study notes.
 
-STRICT RULES:
-- Cover EVERY topic provided (do not skip anything)
-- Keep notes SHORT, crisp, and exam/revision friendly
-- Use bullet points only (no long paragraphs)
-- Explain concepts simply (1–3 bullets per subtopic max)
-- DO NOT add extra topics
-- DO NOT repeat content
-- DO NOT regenerate if content already exists
-- Generate notes in ONE response only
+STRICT REQUIREMENTS:
+- Cover ALL topics provided (do not skip any)
+- Output ONLY valid HTML (no explanations, no markdown outside code blocks)
+- Do NOT include html, head, body, or title tags
+- Use ONLY these tags: div, h2, h3, h4, p, ul, li, strong, pre, code
+- Wrap ALL content inside:
+  <div class="exam-notes">
 
-FORMAT RULES:
-- Output ONLY valid HTML
-- Use <h3> for chapter title
-- Use <h4> for main topics
-- Use <ul><li> for points
-- No <html>, <head>, or <body> tags
-- No markdown, no explanations outside HTML
+STYLING RULES (IMPORTANT):
+- Use Tailwind CSS class attribute (NOT className)
+- Headings must follow this hierarchy:
+  - h2 → Chapter title (large & bold)
+    class="text-3xl font-bold mt-8 mb-4 text-gray-900"
+  - h3 → Major section
+    class="text-2xl font-semibold mt-6 mb-3 text-gray-800"
+  - h4 → Sub-section
+    class="text-xl font-medium mt-4 mb-2 text-gray-700"
 
-GOAL:
-Notes should be:
-- Easy to understand
-- Fast to revise before exams/interviews
-- Balanced for theory + practical understanding
+- Paragraphs:
+  <p class="text-base leading-relaxed text-gray-700 mb-3">
 
-INPUT CHAPTER DATA:
+- Bullet lists (use wherever points are appropriate):
+  <ul class="list-disc pl-6 mb-4 space-y-2">
+  <li class="text-base text-gray-700">
+
+- Highlight key terms using:
+  <strong class="font-semibold text-gray-900">
+
+- For code or syntax (SQL, pseudocode, definitions):
+  Wrap inside:
+  <pre class="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto mb-4">
+    <code class="text-sm">
+
+CONTENT RULES:
+- Tone must be formal and exam-focused (BPSC / UPSC style)
+- Explanations should be crisp and structured
+- Use bullet points wherever possible
+- Avoid long paragraphs
+- No emojis, no casual language
+
+Return ONLY the HTML output.
+
+Chapters:
 ${JSON.stringify(chapter)}
 `;
+
+
 
         const aiResp = await generateNotes(prompt);
 
