@@ -84,3 +84,81 @@ export const generateNotes = async (prompt) => {
     throw error;
   }
 };
+
+
+export const generateFlashcards = async (prompt) => {
+  try {
+    const flashcardPrompt = `
+You are an AI that generates study flashcards.
+RULES:
+- Generate MAXIMUM 15 flashcards
+- Each flashcard must contain:
+  - "front": short question or term
+  - "back": concise explanation (1–2 lines)
+- Beginner-friendly
+- No markdown
+- No extra text
+- Output ONLY valid JSON
+
+FORMAT:
+{
+  "flashcards": [
+    { "front": "", "back": "" }
+  ]
+}
+
+CONTENT:
+${prompt}
+`;
+
+    const response = await client.chat.completions.create({
+      model: "sonar-pro",
+      messages: [
+        { role: "system", content: "You generate clean JSON study flashcards." },
+        { role: "user", content: flashcardPrompt }
+      ],
+      temperature: 0.3,
+    });
+
+    const aiText = response?.choices?.[0]?.message?.content;
+
+    if (!aiText) {
+      throw new Error("Perplexity returned empty flashcard response");
+    }
+
+    return JSON.parse(aiText);
+  } catch (error) {
+    console.error("Perplexity Flashcard Error:", error);
+    throw error;
+  }
+};
+
+export const generateQuiz = async (prompt) => {
+  try {
+    const quizPrompt = `
+CONTENT:
+${prompt}
+`;
+
+    const response = await client.chat.completions.create({
+      model: "sonar-pro",
+      messages: [
+        { role: "system", content: "You generate clean JSON quizzes." },
+        { role: "user", content: quizPrompt }
+      ],
+      temperature: 0.3,
+    });
+
+    const aiText = response?.choices?.[0]?.message?.content;
+
+    if (!aiText) {
+      throw new Error("Perplexity returned empty quiz response");
+    }
+
+    return JSON.parse(aiText);
+  } catch (error) {
+    console.error("Perplexity Quiz Error:", error);
+    throw error;
+  }
+};
+

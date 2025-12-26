@@ -31,9 +31,9 @@ function Course() {
         },
       });
       setcourse(resp.data.result);
-      console.log(resp.data.result)
+      // console.log(resp.data.result)
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         toast('error');
     }finally{
       setLoading(false);
@@ -62,7 +62,7 @@ function Course() {
       {/* CourseIntro */}
       <CourseIntroCard course = {course}/>
       {/* Study Material */}
-      <StudyMaterial courseId = {courseId}/>
+      <StudyMaterial courseId = {courseId} course = {course}/>
       {/* Chapter List */}
       <ChapterList course = {course} />
       </div>
