@@ -1,8 +1,8 @@
 import { inngest } from "./client";
 import db from '@/configs/db'
 import { eq } from 'drizzle-orm';
-import {USER_TABLE , Chapter_Notes_Table , Study_Material_Table} from '@/configs/schema'
-import { generateNotes } from "../configs/AiModel";
+import {USER_TABLE , Chapter_Notes_Table , Study_Material_Table , Study_Type_Content_Table} from '@/configs/schema'
+import { generateFlashcards, generateNotes, generateQuiz } from "../configs/AiModel";
 
 export const helloWorld = inngest.createFunction(
   { id: "hello-world" },
@@ -137,3 +137,29 @@ ${JSON.stringify(chapter)}
   }
 );
 
+// Used To generate Flashcards , Quiz , Q/A
+export const GenerateStudyTypeContent = inngest.createFunction(
+   {id:'Generate Study Content'},
+   {event:'studyType.content'},
+   
+   async({event , step}) => {
+    const {studyType , prompt , courseId , recordId}  = event.data;
+    
+    const Flashcardairesult = await step.run('Generate Flashcard Using AI',async() => {
+         const aiResult = await generateQuiz(prompt);
+         console.log(aiResult )
+         return aiResult; 
+    })
+
+    // Sve to Db
+
+    const DBResult = await step.run('Save to DB' , async () => {
+        const result = await db.update(Study_Type_Content_Table).set({
+          content:Flashcardairesult,
+        }).where(eq(Study_Type_Content_Table.id , recordId))
+
+        return 'data inserted'
+    })
+    return { success: true };
+   }
+);

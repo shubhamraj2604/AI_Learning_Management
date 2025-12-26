@@ -53,7 +53,7 @@ const next = () => {
                 
                </div>
             ))}
-            {stepCount.current!=notes.length-1 && <Button variant={'outline'} size={'sm'} onClick={next} disabled={stepCount.current == notes.length}>Next</Button>}
+            {stepCount.current!=notes.length-1 && <Button variant={'outline'} size={'sm'} onClick={next}>Next</Button>}
         </div>
         <div className='text-lg'>
             <div dangerouslySetInnerHTML={{__html:notes[stepCount.current]?.notes}}/>
