@@ -84,7 +84,7 @@ ${c.topics.join(", ")}
     });
 
     setStudyType(result.data);
-    console.log(result.data);
+    console.log(result.data?.quiz[0].status);
   };
 
   useEffect(() => {
@@ -101,7 +101,7 @@ ${c.topics.join(", ")}
               <div
                 key={item.name}
                 className={`flex flex-col items-center p-5 border shadow-md rounded-lg
-                ${StudyType?.[item.type]?.length == null && "grayscale"} 
+                ${(StudyType?.[item.type]?.length == 0 || StudyType?.[item.type]?.length == null)  && "grayscale"} 
                 `}
               >
                 <h2 className="p-1 px-2 bg-green-500 text-white rounded-xl text-[10px] mb-2">
@@ -110,7 +110,7 @@ ${c.topics.join(", ")}
                 {Icon && <Icon className="w-12 h-12 text-red-700 mb-3" />}
                 <h2 className="font-medium mt-2">{item.name}</h2>
                 <p className="text-gray-500 text-sm text-center">{item.desc}</p>
-                {StudyType?.[item.type]?.length == null ? (
+                {StudyType?.[item.type]?.length == 0 || StudyType?.[item.type]?.length == null  ? (
                   <Button
                     className="mt-3 bg-amber-400 w-full"
                     variant="outline"

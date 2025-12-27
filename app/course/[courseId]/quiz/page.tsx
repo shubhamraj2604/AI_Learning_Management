@@ -26,7 +26,7 @@ const [loading , setloading] = useState(false)
         courseId,
         studyType: "quiz",
       });
-      console.log(result.data)
+      console.log(result.data[0]?.content)
       toast.success('Quiz loaded successfully')
       setquizoptions(result.data[0]?.content || []);
     } catch (error) {
@@ -61,6 +61,8 @@ const [loading , setloading] = useState(false)
       [currentQuestion]: answerIndex,
     }));
   };
+
+  const [clicked , setclicked] = useState(false)
 
   useEffect(() => {
     if (courseId) generatequiz();
@@ -115,7 +117,7 @@ const [loading , setloading] = useState(false)
                       <Button
                         key={choiceIndex}
                         variant="outline"
-                        onClick={() => selectAnswer(choiceIndex)}
+                        onClick={() => {selectAnswer(choiceIndex) , setclicked(true)}}
                         className={`p-4 border-2 rounded-2xl transition-all duration-200 text-left
                 ${
                   selectedAnswers[stepCount.current] === choiceIndex
@@ -129,6 +131,7 @@ const [loading , setloading] = useState(false)
                       </Button>
                     );
                   })}
+                  {clicked && <h1>{item.correctAnswer}</h1>}
                 </div>
               </div>
             )
