@@ -26,9 +26,11 @@ OUTPUT FORMAT (JSON ONLY):
   {
     "question": "Question text",
     "options": ["A", "B", "C", "D"],
-    "correctAnswer": "A"
+    "correctAnswer": "A" {generate jumbled options for each questions , not predictable}
   }
 ]
+
+I need answers 
 
 CHAPTER CONTENT:
 ${chapter}

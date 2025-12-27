@@ -147,7 +147,7 @@ export const GenerateStudyTypeContent = inngest.createFunction(
     
     const Flashcardairesult = await step.run('Generate Flashcard Using AI',async() => {
          const aiResult = await generateQuiz(prompt);
-         console.log(aiResult )
+        //  console.log(aiResult )
          return aiResult; 
     })
 
@@ -156,6 +156,7 @@ export const GenerateStudyTypeContent = inngest.createFunction(
     const DBResult = await step.run('Save to DB' , async () => {
         const result = await db.update(Study_Type_Content_Table).set({
           content:Flashcardairesult,
+          status:'Ready'
         }).where(eq(Study_Type_Content_Table.id , recordId))
 
         return 'data inserted'
