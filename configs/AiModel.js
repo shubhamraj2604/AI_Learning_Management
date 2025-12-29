@@ -162,3 +162,27 @@ ${prompt}
   }
 };
 
+export const generateFeedback = async (prompt) => {
+  try {
+    const response = await client.chat.completions.create({
+      model: "sonar-pro",
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const content = response?.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error("Perplexity returned empty feedback response");
+    }
+
+    // ✅ REMOVE markdown code fences if present
+    const cleaned = content
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    return JSON.parse(cleaned);
+  } catch (error) {
+    console.error("Perplexity Feedback API Error:", error);
+    throw error;
+  }
+};
