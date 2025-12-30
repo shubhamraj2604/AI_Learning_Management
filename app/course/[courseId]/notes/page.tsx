@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import axios from 'axios'
 import { useParams } from 'next/navigation'
 import React, { useEffect, useRef, useState } from 'react'
+import DOMPurify from 'dompurify';
 
 type Notes = {
  courseId:string,
@@ -37,6 +38,14 @@ const next = () => {
         setNotes(result.data);
     }
 
+    const rawHTML =
+  notes[stepCount.current]?.notes
+    ?.replace(/```html/g, '')
+    ?.replace(/```/g, '')
+    ?.trim() || '';
+
+const safeHTML = DOMPurify.sanitize(rawHTML);
+
     useEffect(() => {
         // it runs the useEffect only one , no more useless api calls
        if(runone.current)return;
@@ -56,7 +65,7 @@ const next = () => {
             {stepCount.current!=notes.length-1 && <Button variant={'outline'} size={'sm'} onClick={next}>Next</Button>}
         </div>
         <div className='text-lg'>
-            <div dangerouslySetInnerHTML={{__html:notes[stepCount.current]?.notes}}/>
+            <div dangerouslySetInnerHTML={{ __html: safeHTML }}/>
         </div>
     </div>
   )

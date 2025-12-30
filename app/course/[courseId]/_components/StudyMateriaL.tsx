@@ -31,13 +31,13 @@ Topics:
 ${c.topics.join(", ")}
 `
       )
-      .join("\n\n");
+      .join("\n\n") || "";
 
     try {
       const result = await axios.post("/api/generate-study-type-content", {
         courseId,
         type: studytype,
-        chapter: chapterContent, 
+        chapter: chapterContent.trim(), 
       });
 
       console.log(result.data);

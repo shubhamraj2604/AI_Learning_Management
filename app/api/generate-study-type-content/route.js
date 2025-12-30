@@ -33,7 +33,7 @@ OUTPUT FORMAT (JSON ONLY):
 I need answers 
 
 CHAPTER CONTENT:
-${chapter}
+${JSON.stringify(chapter).slice(1, -1)}
 `
 }
 
