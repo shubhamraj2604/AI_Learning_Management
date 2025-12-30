@@ -44,7 +44,7 @@ export const CreateNewUser = inngest.createFunction(
 )
 
 
-
+// Used to generate notes
 export const createNotes = inngest.createFunction(
   { id: "generate-course" },
   { event: "notes.generate" },
