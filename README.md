@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Learning Management System (Easy Learn)
 
-## Getting Started
+An AI-powered Learning Management System that enables **course creation, quizzes, notes, and intelligent feedback** using modern web technologies and background AI workflows.
 
-First, run the development server:
+🔗 **Live Demo:** https://easy-learn-mg.vercel.app/  
+📦 **Repository:** https://github.com/shubhamraj2604/AI_Learning_Management
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 📚 AI Course Creation
+- Create courses based on structured user inputs
+- Automatically generate learning content using AI
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🧠 Quiz Generation
+- AI-generated quizzes for each course
+- Supports multiple questions per topic
 
-## Learn More
+### 📝 Notes Generation
+- Automatically generated study notes for better understanding
+- Clean and readable format for learners
 
-To learn more about Next.js, take a look at the following resources:
+### 🧩 Flashcards & Q/A *(In Progress)*
+- Flashcards for quick revision
+- Question & Answer mode for active recall
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 📊 Intelligent Quiz Feedback
+- After quiz submission, AI analyzes **wrong answers**
+- Provides **personalized feedback** and explanations
+- Feedback is generated only after user submission
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🔐 Authentication
+- Secure authentication using **Clerk**
+- User-specific courses, quizzes, and progress
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## ⚙️ Background AI Processing
+- **Inngest** is used for background AI workflows
+- Ensures non-blocking UI while AI tasks run asynchronously
+
+---
+
+## 🧠 AI & Tech Stack
+
+### Frontend
+- **Next.js (App Router)**
+- **React**
+- **Tailwind CSS**
+- **shadcn/ui**
+
+### Backend & Database
+- **Drizzle ORM** (Type-safe database access)
+- **PostgreSQL**
+
+### AI & Automation
+- **Perplexity AI** for content generation
+- **Inngest** for background AI jobs
+
+### Authentication
+- **Clerk**
+
+---
+
+## 🛠️ Key Highlights
+- Fully **type-safe** backend using Drizzle ORM
+- Background AI jobs to improve performance and UX
+- Modular and scalable architecture
+- Clean UI with shadcn components
+
+---
+
+## 🧪 Current Status
+- ✅ Course Creation
+- ✅ Quiz Generation
+- ✅ Notes Generation
+- ✅ AI Feedback for Wrong Answers
+- 🚧 Flashcards & Q/A (In Progress)
+
+---
+
+## 📌 Future Improvements
+- Progress tracking & analytics
+- Flashcard spaced repetition
+- User performance dashboard
+- Course sharing & collaboration
+
+---
+
+## 🧑‍💻 Author
+
+**Shubham Raj**  
+Computer Science & Engineering Student  
+BIT Mesra  
+
+- GitHub: https://github.com/shubhamraj2604
+- Portfolio: *(Coming Soon)*
+
+---
+
+## ⭐ If you like this project
+Give it a ⭐ on GitHub — it really helps!
