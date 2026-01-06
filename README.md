@@ -90,6 +90,7 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 - Progress tracking & analytics dashboard
 - Flashcard spaced repetition
 - Course sharing & collaboration
+- **Deployment on Docker and AWS** for scalable production
 
 ---
 
@@ -100,7 +101,7 @@ Computer Science & Engineering Student
 BIT Mesra  
 
 - GitHub: https://github.com/shubhamraj2604
-- Portfolio: *(Coming Soon)*
+- Portfolio: https://shubhamraj26.netlify.app/
 
 ---
 
