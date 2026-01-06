@@ -13,7 +13,7 @@ export default function DashBoardHeader({
   return (
     <div className="p-5 shadow-md flex justify-between items-center">
       <div className="flex items-center gap-3 md:hidden">
-        <Menu className="cursor-pointer" onClick={onMenuClick} />
+        <Menu className="cursor-pointer" onClick={onMenuClick || (() => {})}  />
       </div>
          
         <Link href="/dashboard" className="hidden md:block">
