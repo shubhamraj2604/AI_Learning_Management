@@ -27,7 +27,7 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 
 ### 📊 Intelligent Quiz Feedback
 - After quiz submission, AI analyzes **wrong answers**
-- Provides **personalized feedback** and explanations
+- Provides **personalized feedback**
 - Feedback is generated only after user submission
 
 ---
@@ -51,6 +51,7 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 - **React**
 - **Tailwind CSS**
 - **shadcn/ui**
+- **React Hot Toast** for notifications
 
 ### Backend & Database
 - **Drizzle ORM** (Type-safe database access)
@@ -79,13 +80,15 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 - ✅ Notes Generation
 - ✅ AI Feedback for Wrong Answers
 - 🚧 Flashcards & Q/A (In Progress)
+- 🚧 Profile Section (In Progress)
+- 🚧 User Analytics for study performance (In Progress)
 
 ---
 
 ## 📌 Future Improvements
-- Progress tracking & analytics
+- Course-specific **AI Chatbots** for interactive learning
+- Progress tracking & analytics dashboard
 - Flashcard spaced repetition
-- User performance dashboard
 - Course sharing & collaboration
 
 ---
