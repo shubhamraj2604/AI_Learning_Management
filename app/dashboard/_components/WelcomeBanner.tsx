@@ -6,6 +6,7 @@ function WelcomeBanner() {
   const { user, isLoaded } = useUser();
   if (!isLoaded) return null;
 
+
   return (
     <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-indigo-600 via-blue-600 to-cyan-500 p-6 text-white shadow-lg">
       
@@ -24,11 +25,11 @@ function WelcomeBanner() {
 
         {/* Text */}
         <div>
-          <h2 className="text-3xl font-bold leading-tight">
+          <h2 className="text-xl md:text-3xl font-bold leading-tight">
             Welcome back, {user?.firstName} 👋
           </h2>
 
-          <p className="mt-1 text-white/90">
+          <p className="mt-1 text-white/90 text-sm md:text-md">
             “Small progress each day adds up to big results.”
           </p>
 

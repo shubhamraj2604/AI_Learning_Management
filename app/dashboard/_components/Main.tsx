@@ -52,7 +52,7 @@ function Main() {
 
   return (
     <div>
-      <h2 className="px-10 font-bold text-2xl mt-10 flex justify-between items-center">
+      <h2 className="px-10 font-bold text-xl md:text-2xl mt-10 flex justify-between items-center">
         Your Course List
         <Button
           variant="outline"

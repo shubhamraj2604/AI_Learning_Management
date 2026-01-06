@@ -1,0 +1,70 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { LayoutDashboard, Shield, UserCircle, X } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { usePathname } from "next/navigation";
+
+const MenuList = [
+  { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { name: "Upgrade", icon: Shield, path: "/dashboard/upgrade" },
+  { name: "Profile", icon: UserCircle, path: "/dashboard/profile" },
+];
+
+export default function MobileMenu({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  if (!open) return null;
+  const path = usePathname();
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black/40 z-40 md:hidden"
+        onClick={onClose}
+      />
+
+      {/* Drawer */}
+      <div
+        className="
+          fixed top-0 left-0 z-50
+          h-screen w-64 bg-white p-5 shadow
+          md:hidden
+        "
+      >
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex gap-2 items-center">
+            <Image src="/logo.svg" alt="logo" width={36} height={36} />
+            <h2 className="font-bold text-xl">Easy Study</h2>
+          </div>
+          <X className="cursor-pointer" onClick={onClose} />
+        </div>
+
+        <div className="space-y-4">
+          {MenuList.map((item) => (
+            <Link
+              key={item.name}
+              href={item.path}
+              onClick={onClose}
+              className={`flex gap-4 items-center p-3 rounded-lg hover:bg-slate-200 ${path == item.path && 'bg-slate-200'}`}
+            >
+              <item.icon />
+              <span>{item.name}</span>
+            </Link>
+          ))}
+        </div>
+         <div className='border bg-slate-100 rounded-lg p-3 absolute bottom-10 w-[85%]'>
+        <h2 className='text-lg'>Available Credits : 5</h2>
+        <Progress value={30}/>
+        <h2 className='text-sm'>1 out of 5 credits used</h2>
+        <Link href = {'/dashboard/upgrade'} className='text-blue-800 text-xs mt-3'>Upgrade to create more</Link>        
+    </div>
+      </div>
+    </>
+  );
+}
