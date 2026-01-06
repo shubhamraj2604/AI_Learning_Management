@@ -5,20 +5,30 @@ import Image from "next/image";
 import Link from "next/link";
 import { Menu } from "lucide-react";
 
+type DashBoardHeaderProps = {
+  onMenuClick?: () => void;
+};
+
 export default function DashBoardHeader({
   onMenuClick,
-}: {
-  onMenuClick: () => void;
-}) {
+}: DashBoardHeaderProps) {
   return (
     <div className="p-5 shadow-md flex justify-between items-center">
+      {/* Mobile Menu Button */}
       <div className="flex items-center gap-3 md:hidden">
-        <Menu className="cursor-pointer" onClick={onMenuClick} />
+        {onMenuClick && (
+          <Menu
+            className="cursor-pointer"
+            onClick={onMenuClick}
+          />
+        )}
       </div>
-         
-        <Link href="/dashboard" className="hidden md:block">
-          <Image src="/logo.svg" alt="Logo" width={40} height={40} />
-        </Link>
+
+      {/* Logo */}
+      <Link href="/dashboard" className="hidden md:block">
+        <Image src="/logo.svg" alt="Logo" width={40} height={40} />
+      </Link>
+
       <UserButton />
     </div>
   );
