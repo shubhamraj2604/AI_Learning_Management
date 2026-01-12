@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LayoutDashboard, Shield, UserCircle, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 const MenuList = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -46,6 +47,13 @@ export default function MobileMenu({
         </div>
 
         <div className="space-y-4">
+          <div>
+           <Link href={'/create'}>
+            <Button className='w-full mt-10 bg-blue-700'>
+               Create New
+            </Button>
+            </Link>
+          </div>
           {MenuList.map((item) => (
             <Link
               key={item.name}
