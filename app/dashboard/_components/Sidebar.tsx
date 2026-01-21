@@ -1,11 +1,15 @@
 "use client"
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import {LayoutDashboard, Shield, UserCircle} from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { Progress } from '@/components/ui/progress'
 import Link from 'next/link'
+import { useUser } from '@clerk/nextjs'
+import axios from 'axios'
+import { useCourseStore } from "@/store/useCourseStore";
+
 
 function Sidebar() {
     const MenuList = [
@@ -25,7 +29,12 @@ function Sidebar() {
             path:'/dashboard/profile'
         },
     ]
+
+    const { user, isLoaded } = useUser()
     const path = usePathname()
+
+    const courses = useCourseStore((s) => s.courses);
+
   return (
     <div className='h-screen shadow-md  p-5'>
         <div className='flex gap-2 items-center'>
@@ -52,9 +61,9 @@ function Sidebar() {
     </div>
 
     <div className='border bg-slate-100 rounded-lg p-3 absolute bottom-10 w-[85%]'>
-        <h2 className='text-lg'>Available Credits : 5</h2>
+        <h2 className='text-lg'>Available Credits : {courses}</h2>
         <Progress value={30}/>
-        <h2 className='tex-sm'>1 out of 5 credits used</h2>
+        <h2 className='tex-sm'>1 out of {courses} credits used</h2>
         <Link href = {'/dashboard/upgrade'} className='text-blue-800 text-xs mt-3'>Upgrade to create more</Link>        
     </div>
     </div>

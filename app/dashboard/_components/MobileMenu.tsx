@@ -6,12 +6,14 @@ import { LayoutDashboard, Shield, UserCircle, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useCourseStore } from "@/store/useCourseStore";
 
 const MenuList = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { name: "Upgrade", icon: Shield, path: "/dashboard/upgrade" },
   { name: "Profile", icon: UserCircle, path: "/dashboard/profile" },
 ];
+
 
 export default function MobileMenu({
   open,
@@ -22,6 +24,7 @@ export default function MobileMenu({
 }) {
   if (!open) return null;
   const path = usePathname();
+  const courses = useCourseStore((s) => s.courses);
   return (
     <>
       {/* Overlay */}
@@ -67,9 +70,9 @@ export default function MobileMenu({
           ))}
         </div>
          <div className='border bg-slate-100 rounded-lg p-3 absolute bottom-10 w-[85%]'>
-        <h2 className='text-lg'>Available Credits : 5</h2>
+        <h2 className='text-lg'>Available Credits : {courses}</h2>
         <Progress value={30}/>
-        <h2 className='text-sm'>1 out of 5 credits used</h2>
+        <h2 className='text-sm'>1 out of {courses} credits used</h2>
         <Link href = {'/dashboard/upgrade'} className='text-blue-800 text-xs mt-3'>Upgrade to create more</Link>        
     </div>
       </div>

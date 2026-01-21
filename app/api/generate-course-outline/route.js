@@ -15,7 +15,7 @@ export async function POST(req) {
       createdBy,
     } =  body;
 
-    console.log(courseId , topic , studyType , difficulty , createdBy)
+    // console.log(courseId , topic , studyType , difficulty , createdBy)
 
     if (!courseId || !topic || !studyType || !createdBy) {
       return NextResponse.json(
@@ -95,7 +95,7 @@ Generate the complete response in one output and stop.
         status: "Completed",
       })
       .returning();
-      console.log(dbResult)
+      // console.log(dbResult)
       // To generate Chapter Notes
 
       const result = await inngest.send({
