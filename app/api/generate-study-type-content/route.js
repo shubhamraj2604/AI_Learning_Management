@@ -58,3 +58,31 @@ ${JSON.stringify(chapter).slice(1, -1)}
  
    return NextResponse.json({id : result[0].id})
 }
+
+
+
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+
+  const courseId = searchParams.get("courseId");
+  const studyType = searchParams.get("studyType");
+
+  if (!courseId || !studyType) {
+    return NextResponse.json(
+      { error: "Missing courseId or studyType" },
+      { status: 400 }
+    );
+  }
+
+  const [row] = await db
+    .select({ status: Study_Type_Content_Table.status })
+    .from(Study_Type_Content_Table)
+    .where(
+      and(
+        eq(Study_Type_Content_Table.courseId, courseId),
+        eq(Study_Type_Content_Table.type, studyType)
+      )
+    );
+
+  return NextResponse.json(row ?? { status: "Generating" });
+}

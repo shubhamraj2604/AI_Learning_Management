@@ -133,17 +133,26 @@ ${prompt}
   }
 };
 
+
+function extractJSON(text) {
+  return text
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+}
+
 export const generateQuiz = async (prompt) => {
   try {
-    const quizPrompt = `
-CONTENT:
-${prompt}
-`;
+    const quizPrompt = `${prompt}`;
 
     const response = await client.chat.completions.create({
       model: "sonar-pro",
       messages: [
-        { role: "system", content: "You generate clean JSON quizzes." },
+        {
+          role: "system",
+          content:
+            "Return ONLY valid raw JSON. No markdown. No explanations."
+        },
         { role: "user", content: quizPrompt }
       ],
       temperature: 0.3,
@@ -155,12 +164,21 @@ ${prompt}
       throw new Error("Perplexity returned empty quiz response");
     }
 
-    return JSON.parse(aiText);
+    const cleanJSON = extractJSON(aiText);
+    const parsed = JSON.parse(cleanJSON);
+
+    // Optional safety check
+    if (!Array.isArray(parsed)) {
+      throw new Error("AI did not return a JSON array");
+    }
+
+    return parsed;
   } catch (error) {
     console.error("Perplexity Quiz Error:", error);
     throw error;
   }
 };
+
 
 export const generateFeedback = async (prompt) => {
   try {

@@ -5,46 +5,105 @@ import {
   FileText,
   CreditCard,
   MessageSquare,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 type StudyMaterialProps = {
   courseId: any;
   course: any;
 };
 
+type Status = "Generating" | "Ready";
+
 function StudyMaterial({ courseId, course }: StudyMaterialProps) {
   const [StudyType, setStudyType] = useState<any>();
+  const [statusMap, setStatusMap] = useState<Record<string, Status>>({});
+
+  /* Generate Content  */
   const GenerateContent = async (studytype: string) => {
-      if (!course?.courseLayout?.chapters?.length) {
-    console.error("No chapters found");
-    return;
-  }
-    const chapterContent = course?.courseLayout?.chapters
-      ?.map(
-        (c: any) => `
+    // prevent duplicate request
+    if (statusMap[studytype] === "Generating") return;
+
+    if (!course?.courseLayout?.chapters?.length) {
+      toast.error("No chapters found");
+      return;
+    }
+
+    const chapterContent =
+      course.courseLayout.chapters
+        .map(
+          (c: any) => `
 Chapter ${c.chapter_number}: ${c.chapter_title}
 Summary: ${c.chapter_summary}
 Topics:
 ${c.topics.join(", ")}
 `
-      )
-      .join("\n\n") || "";
+        )
+        .join("\n\n") || "";
 
     try {
-      const result = await axios.post("/api/generate-study-type-content", {
+      // optimistic UI
+      setStatusMap((prev) => ({ ...prev, [studytype]: "Generating" }));
+
+      await axios.post("/api/generate-study-type-content", {
         courseId,
         type: studytype,
-        chapter: chapterContent.trim(), 
+        chapter: chapterContent.trim(),
       });
 
-      console.log(result.data);
+      pollStatus(studytype);
     } catch (error) {
-      console.error(error);
+      toast.error("Failed to generate");
+      setStatusMap((prev) => ({ ...prev, [studytype]: "Ready" }));
     }
   };
+
+const pollStatus = (studytype: string) => {
+  const interval = setInterval(async () => {
+    try {
+      const res = await axios.get("/api/generate-study-type-content", {
+        params: { courseId, studyType: studytype },
+      });
+
+      if (res.data.status === "Ready") {
+        setStatusMap((prev) => ({ ...prev, [studytype]: "Ready" }));
+        clearInterval(interval);
+        GetStudyType(); // refresh generated content
+      }
+    } catch {
+      clearInterval(interval);
+      toast.error("Polling failed");
+    }
+  }, 3000);
+};
+
+
+  const GetStudyType = async () => {
+    const result = await axios.post("/api/study-type", {
+      courseId,
+      studyType: "ALL",
+    });
+
+    setStudyType(result.data);
+
+    // initialize statusMap from backend data
+    Object.keys(result.data).forEach((key) => {
+      if (result.data[key]?.[0]?.status) {
+        setStatusMap((prev) => ({
+          ...prev,
+          [key]: result.data[key][0].status,
+        }));
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (courseId) GetStudyType();
+  }, [courseId]);
 
   const MaterialList = [
     {
@@ -77,40 +136,40 @@ ${c.topics.join(", ")}
     },
   ];
 
-  const GetStudyType = async () => {
-    const result = await axios.post("/api/study-type", {
-      courseId: courseId,
-      studyType: "ALL",
-    });
-
-    setStudyType(result.data);
-    console.log(result.data?.quiz[0].status);
-  };
-
-  useEffect(() => {
-    if (courseId) GetStudyType();
-  }, [courseId]);
   return (
     <div className="mt-10">
       <h2 className="font-medium text-xl">Study Material</h2>
+
       <div className="grid grid-col-2 md:grid-cols-4 gap-5 my-5">
         {MaterialList.map((item) => {
           const Icon = item.icon;
+          const isEmpty =
+            !StudyType?.[item.type] ||
+            StudyType[item.type].length === 0;
+
           return (
-           
-              <div
-                key={item.name}
-                className={`flex flex-col items-center p-5 border shadow-md rounded-lg
-                ${(StudyType?.[item.type]?.length == 0 || StudyType?.[item.type]?.length == null)  && "grayscale"} 
-                `}
-              >
-                <h2 className="p-1 px-2 bg-green-500 text-white rounded-xl text-[10px] mb-2">
-                  Ready
-                </h2>
-                {Icon && <Icon className="w-12 h-12 text-red-700 mb-3" />}
-                <h2 className="font-medium mt-2">{item.name}</h2>
-                <p className="text-gray-500 text-sm text-center">{item.desc}</p>
-                {StudyType?.[item.type]?.length == 0 || StudyType?.[item.type]?.length == null  ? (
+            <div
+              key={item.name}
+              className={`flex flex-col items-center p-5 border shadow-md rounded-lg
+              ${isEmpty && "grayscale"}`}
+            >
+              {Icon && <Icon className="w-12 h-12 text-red-700 mb-3" />}
+              <h2 className="font-medium mt-2">{item.name}</h2>
+              <p className="text-gray-500 text-sm text-center">
+                {item.desc}
+              </p>
+
+              {isEmpty ? (
+                statusMap[item.type] === "Generating" ? (
+                  <Button
+                    className="mt-3 bg-amber-400 w-full flex items-center gap-2"
+                    variant="outline"
+                    disabled
+                  >
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Generating
+                  </Button>
+                ) : (
                   <Button
                     className="mt-3 bg-amber-400 w-full"
                     variant="outline"
@@ -118,17 +177,18 @@ ${c.topics.join(", ")}
                   >
                     Generate
                   </Button>
-                ) : (
-                   <Link key={item.name} href={"/course/" + courseId + item.path}>
+                )
+              ) : (
+                <Link href={`/course/${courseId}${item.path}`}>
                   <Button
                     className="mt-3 bg-amber-400 w-full"
                     variant="outline"
-                    >
+                  >
                     View
                   </Button>
-                    </Link>
-                )}
-              </div>
+                </Link>
+              )}
+            </div>
           );
         })}
       </div>
