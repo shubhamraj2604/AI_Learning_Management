@@ -3,9 +3,33 @@ import { generateCourseOutline } from "@/configs/AiModel";
 import db from "@/configs/db";
 import { Study_Material_Table } from "@/configs/schema";
 import { inngest } from "../../../inngest/client";
+import { aj } from "@/lib/arcjet";
+import { auth } from "@clerk/nextjs/server";
+
+
+
 
 export async function POST(req) {
     // console.log()
+
+  const { userId } = auth();
+
+  if (!userId) {
+   return NextResponse.json(
+    { error: "Unauthorized" },
+    { status: 401 }
+    );
+ }
+
+const decision = await aj.protect(req, {
+  userId, // 🔐 trusted identity
+});
+ if (decision.isDenied()) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait." },
+      { status: 429 }
+    );
+  }
     const body = await req.json()
     const {
       courseId,
