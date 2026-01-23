@@ -1,6 +1,6 @@
 # AI Learning Management System (Easy Learn)
 
-An AI-powered Learning Management System that enables **course creation, quizzes, notes, and intelligent feedback** using modern web technologies and background AI workflows.
+An AI-powered Learning Management System that enables **course creation, quizzes, notes, and intelligent feedback** using modern web technologies and scalable background AI workflows.
 
 🔗 **Live Demo:** https://easy-learn-mg.vercel.app/  
 📦 **Repository:** https://github.com/shubhamraj2604/AI_Learning_Management
@@ -44,6 +44,41 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 
 ---
 
+## 🏗️ System Design & Performance Optimizations
+
+### 🪣 Rate Limiting & AI Cost Control
+- Implemented **token bucket rate limiting** using **Arcjet**
+- Rate limiting is applied **per authenticated user**
+- Different limits based on operation cost:
+  - Course generation (strict limits)
+  - Quiz & flashcard generation (moderate limits)
+  - Read-only endpoints (light limits)
+- Prevents abuse, ensures fair usage, and controls AI API costs
+
+---
+
+### 🔄 Asynchronous Processing & Polling
+- Long-running AI tasks are handled using **Inngest background jobs**
+- API responds immediately while AI generation runs asynchronously
+- Frontend uses **polling** to check task status (`Generating → Ready`)
+- Ensures smooth UX without blocking the UI
+
+---
+
+### ⏳ Debouncing & Duplicate Request Prevention
+- Frontend actions (e.g. "Generate Course") are **debounced**
+- Prevents accidental multiple AI requests from rapid user clicks
+- Reduces redundant background jobs and unnecessary AI costs
+
+---
+
+### 🔐 Secure Request Handling
+- All sensitive endpoints are protected via authentication
+- Rate limiting and access control rely on **trusted auth context**
+- Client-supplied identifiers are never trusted for security decisions
+
+---
+
 ## 🧠 AI & Tech Stack
 
 ### Frontend
@@ -60,6 +95,7 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 ### AI & Automation
 - **Perplexity AI** for content generation
 - **Inngest** for background AI jobs
+- **Arcjet** for rate limiting and security
 
 ### Authentication
 - **Clerk**
@@ -67,10 +103,11 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 ---
 
 ## 🛠️ Key Highlights
-- Fully **type-safe** backend using Drizzle ORM
-- Background AI jobs to improve performance and UX
+- Fully **type-safe backend** using Drizzle ORM
+- Token-based rate limiting for AI cost control
+- Asynchronous background AI processing
 - Modular and scalable architecture
-- Clean UI with shadcn components
+- Clean and modern UI with shadcn components
 
 ---
 
@@ -88,9 +125,9 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 ## 📌 Future Improvements
 - Course-specific **AI Chatbots** for interactive learning
 - Progress tracking & analytics dashboard
-- Flashcard spaced repetition
+- Flashcard spaced repetition system
 - Course sharing & collaboration
-- **Deployment on Docker and AWS** for scalable production
+- **Docker & AWS deployment** for scalable production
 
 ---
 
