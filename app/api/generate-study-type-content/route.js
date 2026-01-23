@@ -2,8 +2,29 @@ import db from '@/configs/db'
 import {Study_Type_Content_Table} from '@/configs/schema'
 import { inngest } from '../../../inngest/client';
 import { NextResponse } from 'next/server';
+import {ajStudyType} from "@/lib/arcjet";
+import {auth} from '@clerk/nextjs/server'
 
 export async function POST(req) {
+
+    const {userId} = auth();
+    if (!userId) {
+    return NextResponse.json(
+    { error: "Unauthorized" },
+    { status: 401 }
+    );
+ }
+
+  const decision = await ajStudyType.protect(req, {
+  userId, // 🔐 trusted identity
+  });
+  if(decision.isDenied()) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait." },
+      { status: 429 }
+    );
+  }
+
     const {chapter , courseId , type} = await req.json()
     console.log(type)
     
