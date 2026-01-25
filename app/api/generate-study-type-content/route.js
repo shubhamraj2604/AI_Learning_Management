@@ -7,24 +7,27 @@ import {auth} from '@clerk/nextjs/server'
 
 export async function POST(req) {
 
-    const {userId} = auth();
-    if (!userId) {
-    return NextResponse.json(
-    { error: "Unauthorized" },
-    { status: 401 }
-    );
- }
+let clerkUserId;
 
-  const decision = await ajStudyType.protect(req, {
-  userId, // 🔐 trusted identity
+try {
+  clerkUserId = auth().userId ?? undefined;
+} catch {
+  clerkUserId = undefined;
+}
+
+if (process.env.ARCJET_KEY) {
+  const decision = await aj.protect(req, {
+    requested: 1,
+    userId: clerkUserId ? `clerk:${clerkUserId}` : undefined,
   });
-  if(decision.isDenied()) {
+
+  if (decision.isDenied()) {
     return NextResponse.json(
-      { error: "Too many requests. Please wait." },
+      { error: "Too many requests" },
       { status: 429 }
     );
   }
-
+}
     const {chapter , courseId , type} = await req.json()
     console.log(type)
     
