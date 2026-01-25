@@ -3,43 +3,46 @@ import { generateCourseOutline } from "@/configs/AiModel";
 import db from "@/configs/db";
 import { Study_Material_Table } from "@/configs/schema";
 import { inngest } from "../../../inngest/client";
-import { aj } from "@/lib/arcjet";
+import {aj} from "@/lib/arcjet";
 import { auth } from "@clerk/nextjs/server";
 
-
-
-
 export async function POST(req) {
-    // console.log()
+  try {
 
-  const { userId } = auth();
 
-  if (!userId) {
-   return NextResponse.json(
-    { error: "Unauthorized" },
-    { status: 401 }
-    );
- }
+ let clerkUserId;
 
-const decision = await aj.protect(req, {
-  userId, // 🔐 trusted identity
-});
- if (decision.isDenied()) {
+// Get userId WITHOUT mutating request
+try {
+  clerkUserId = auth().userId ?? undefined;
+} catch {
+  clerkUserId = undefined;
+}
+
+if (process.env.ARCJET_KEY) {
+  const decision = await aj.protect(req, {
+    requested: 1,
+    userId: clerkUserId ? `clerk:${clerkUserId}` : undefined,
+  });
+
+  if (decision.isDenied()) {
     return NextResponse.json(
-      { error: "Too many requests. Please wait." },
+      { error: "Too many requests" },
       { status: 429 }
     );
   }
-    const body = await req.json()
+}
+
+
+
+    const body = await req.json();
     const {
       courseId,
       topic,
       studyType,
       difficulty,
       createdBy,
-    } =  body;
-
-    // console.log(courseId , topic , studyType , difficulty , createdBy)
+    } = body;
 
     if (!courseId || !topic || !studyType || !createdBy) {
       return NextResponse.json(
@@ -48,91 +51,118 @@ const decision = await aj.protect(req, {
       );
     }
 
-   const prompt = `
-You are an expert curriculum designer and educator.
+
+    const prompt = `
+You are a JSON generator.
 
 TASK:
 Generate structured study material for the given topic.
-The content MUST adapt based on the study type:
-- Exam: theory-focused, definitions, explanations
-- Coding: practical concepts, implementation-oriented topics
-- Job Interview: conceptual clarity, commonly asked questions, real-world usage
-- Practice: hands-on tasks, applied concepts, problem-solving focus
 
-GENERAL RULES:
-- Adjust chapter titles, summaries, and topics according to the study type
-- Maintain logical learning progression (basic → advanced)
-- Keep content appropriate to the given difficulty level
-- Do NOT include unnecessary information for the study type
-- Do NOT ask questions or request clarification
+STUDY TYPE BEHAVIOR:
+- Exam: theory, definitions, explanations
+- Coding: practical concepts, implementation focus
+- Job Interview: concepts, FAQs, real-world usage
+- Practice: tasks, exercises, applied learning
 
-OUTPUT FORMAT (STRICT):
-Return ONLY valid JSON.
-Do NOT include markdown, comments, or extra text.
-The JSON MUST follow this exact structure:
+STRICT RULES:
+- Maintain logical progression (basic → advanced)
+- Match the difficulty level
+- Do NOT ask questions
+- Do NOT explain limitations
+- Do NOT include markdown or extra text
 
+CRITICAL FAILURE RULE:
+If content cannot be generated for ANY reason,
+return EXACTLY this JSON and nothing else:
 {
-  "course_title": "...",
-  "course_summary": "...",
+  "course_title": "",
+  "course_summary": "",
+  "chapters": []
+}
+
+OUTPUT FORMAT (JSON ONLY):
+{
+  "course_title": "string",
+  "course_summary": "string",
   "chapters": [
     {
-      "chapter_number": 1,
-      "chapter_title": "...",
-      "chapter_summary": "...",
-      "topics": ["topic 1", "topic 2"]
+      "chapter_number": number,
+      "chapter_title": "string",
+      "chapter_summary": "string",
+      "topics": ["string"]
     }
   ]
 }
 
-INPUT PARAMETERS:
+INPUT:
 Topic: "${topic}"
 Study Type: "${studyType}"
 Difficulty Level: "${difficulty}"
 
-Generate the complete response in one output and stop.
+Generate the full response in ONE output and stop.
 `;
 
-
+    // 3️⃣ Call AI
     const aiText = await generateCourseOutline(prompt);
 
+    // 4️⃣ Extract JSON safely
     let aiResult;
     try {
-      aiResult = JSON.parse(aiText);
+      const match = aiText.match(/\{[\s\S]*\}$/);
+      if (!match) throw new Error("No JSON found");
+      aiResult = JSON.parse(match[0]);
     } catch (err) {
-      console.error("Invalid AI JSON:", aiText);
+      console.error("❌ Invalid AI JSON:", aiText);
       return NextResponse.json(
-        { error: "AI returned invalid JSON", raw: aiText },
+        { error: "AI returned invalid JSON" },
         { status: 500 }
       );
     }
-    
-    console.log(aiResult)
-    const dbResult = await db
+
+    // 5️⃣ Validate AI output
+    if (
+      !aiResult.course_title ||
+      !Array.isArray(aiResult.chapters) ||
+      aiResult.chapters.length === 0
+    ) {
+      return NextResponse.json(
+        { error: "AI could not generate course outline" },
+        { status: 422 }
+      );
+    }
+
+    // 6️⃣ Save to DB
+    const [dbResult] = await db
       .insert(Study_Material_Table)
       .values({
         courseId,
-        courseType : studyType,
+        courseType: studyType,
         topic,
-        difficultyLevel:difficulty,
+        difficultyLevel: difficulty,
         courseLayout: aiResult,
         createdBy,
         status: "Completed",
       })
       .returning();
-      // console.log(dbResult)
-      // To generate Chapter Notes
 
-      const result = await inngest.send({
-        name:"notes.generate",
-        data:{
-          course:dbResult[0]
-        }
-      })
+    // 7️⃣ Trigger Inngest for chapter notes
+    await inngest.send({
+      name: "notes.generate",
+      data: {
+        course: dbResult,
+      },
+    });
 
-      console.log(result)
-
-    return NextResponse.json({sucess:true , data : dbResult[0]});
+    // 8️⃣ Success response
+    return NextResponse.json({
+      success: true,
+      data: dbResult,
+    });
+  } catch (error) {
+    console.error("🔥 Server error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
-
-
-
+}
