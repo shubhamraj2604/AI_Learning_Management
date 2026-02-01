@@ -1,0 +1,11 @@
+node_modules
+.next
+.next/cache
+.env
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+npm-debug.log
+README.md
+.DS_Store
