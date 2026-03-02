@@ -6,7 +6,8 @@ export const USER_TABLE=pgTable('users',{
     id:serial().primaryKey(),
     userName:varchar().notNull(),
     email:varchar().notNull(),
-    isMember:boolean().default(false)
+    isMember:boolean().default(false),
+    plan:varchar().default('Basic')
 })
 
 export const Study_Material_Table = pgTable('studyMaterial', {
