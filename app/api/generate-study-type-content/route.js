@@ -1,41 +1,42 @@
-import db from '@/configs/db'
-import {Study_Type_Content_Table} from '@/configs/schema'
-import { inngest } from '../../../inngest/client';
-import { NextResponse } from 'next/server';
-import {ajStudyType} from "@/lib/arcjet";
-import {auth} from '@clerk/nextjs/server'
+import db from "@/configs/db";
+import { Study_Type_Content_Table } from "@/configs/schema";
+import { inngest } from "../../../inngest/client";
+import { NextResponse } from "next/server";
+import { ajStudyType } from "@/lib/arcjet";
+import { auth } from "@clerk/nextjs/server";
+import { and, eq } from "drizzle-orm";
 
 export async function POST(req) {
+  let clerkUserId;
 
-let clerkUserId;
-
-try {
-  clerkUserId = auth().userId ?? undefined;
-} catch {
-  clerkUserId = undefined;
-}
-
-if (process.env.ARCJET_KEY) {
-  const decision = await aj.protect(req, {
-    requested: 1,
-    userId: clerkUserId ? `clerk:${clerkUserId}` : undefined,
-  });
-
-  if (decision.isDenied()) {
-    return NextResponse.json(
-      { error: "Too many requests" },
-      { status: 429 }
-    );
+  try {
+    clerkUserId = auth().userId ?? undefined;
+  } catch {
+    clerkUserId = undefined;
   }
-}
-    const {chapter , courseId , type} = await req.json()
-    console.log(type)
-    
-    let prompt;
-    if (type === "flashcard"){
-        prompt = `Generate the flashcard on +${chapter}  in json format with front back content, maximum 15`;
-    }else if(type === "quiz"){
-        prompt = `You are generating quiz questions for an AI learning platform.
+
+  if (process.env.ARCJET_KEY) {
+    const decision = await ajStudyType.protect(req, {
+      requested: 1,
+      userId: clerkUserId ? `clerk:${clerkUserId}` : undefined,
+    });
+
+    if (decision.isDenied()) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 }
+      );
+    }
+  }
+
+  const { chapter, courseId, type } = await req.json();
+  console.log(type);
+
+  let prompt;
+  if (type === "flashcard") {
+    prompt = `Generate the flashcard on +${chapter}  in json format with front back content, maximum 15`;
+  } else if (type === "quiz") {
+    prompt = `You are generating quiz questions for an AI learning platform.
 
 STRICT RULES:
 - Create EXACTLY 10 multiple-choice questions
@@ -54,36 +55,37 @@ OUTPUT FORMAT (JSON ONLY):
   }
 ]
 
-I need answers 
+I need answers
 
 CHAPTER CONTENT:
 ${JSON.stringify(chapter).slice(1, -1)}
-`
+`;
+  }
+
+  const result = await db
+    .insert(Study_Type_Content_Table)
+    .values({
+      courseId: courseId,
+      type: type,
+    })
+    .returning({
+      id: Study_Type_Content_Table.id,
+    });
+
+  // trigger
+  console.log(result[0].id);
+  inngest.send({
+    name: "studyType.content",
+    data: {
+      studyType: type,
+      prompt: prompt,
+      courseId: courseId,
+      recordId: result[0].id,
+    },
+  });
+
+  return NextResponse.json({ id: result[0].id });
 }
-
-    const result = await db.insert(Study_Type_Content_Table).values({
-        courseId:courseId,
-        type:type
-    }).returning({
-        id:Study_Type_Content_Table.id});
-    
-              
-   // trigger
-   console.log(result[0].id)
-   inngest.send({
-    name:'studyType.content',
-    data : {
-       studyType:type,
-       prompt:prompt,
-       courseId:courseId,
-       recordId:result[0].id
-    }
-   })
- 
-   return NextResponse.json({id : result[0].id})
-}
-
-
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);

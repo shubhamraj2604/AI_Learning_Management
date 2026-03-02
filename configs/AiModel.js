@@ -38,54 +38,213 @@
 
 // backend/perplexity.js
 
-import Perplexity from "@perplexity-ai/perplexity_ai";
+// import Perplexity from "@perplexity-ai/perplexity_ai";
 
 
-const apiKey = process.env.PERPLEXITY_API_KEY;
+// const apiKey = process.env.PERPLEXITY_API_KEY;
 
-const client = new Perplexity({ apiKey });
+// const client = new Perplexity({ apiKey });
 
 
+// export const generateCourseOutline = async (prompt) => {
+//   try {
+//     const response = await client.chat.completions.create({
+//       model: "sonar-pro",       
+//       messages: [
+//         { role: "user", content: prompt }
+//       ],
+//       // optional Perplexity parameters:
+//       // temperature: 0.7,
+//       // max_tokens: 1000,
+//     });
+
+//     return response.choices[0].message.content;
+//   } catch (err) {
+//     console.error("Perplexity API Error:", err);
+//     throw err;
+//   }
+// };
+
+// export const generateNotes = async (prompt) => {
+//   try {
+//     const response = await client.chat.completions.create({
+//       model: "sonar-pro",
+//       messages: [
+//         { role: "user", content: prompt }
+//       ],
+//     });
+
+//     if (!response?.choices?.[0]?.message?.content) {
+//       throw new Error("Perplexity returned empty response");
+//     }
+
+//     return response.choices[0].message.content;
+//   } catch (error) {
+//     console.error("Perplexity API Error:", error);
+//     throw error;
+//   }
+// };
+
+
+// export const generateFlashcards = async (prompt) => {
+//   try {
+//     const flashcardPrompt = `
+// You are an AI that generates study flashcards.
+// RULES:
+// - Generate MAXIMUM 15 flashcards
+// - Each flashcard must contain:
+//   - "front": short question or term
+//   - "back": concise explanation (1–2 lines)
+// - Beginner-friendly
+// - No markdown
+// - No extra text
+// - Output ONLY valid JSON
+
+// FORMAT:
+// {
+//   "flashcards": [
+//     { "front": "", "back": "" }
+//   ]
+// }
+
+// CONTENT:
+// ${prompt}
+// `;
+
+//     const response = await client.chat.completions.create({
+//       model: "sonar-pro",
+//       messages: [
+//         { role: "system", content: "You generate clean JSON study flashcards." },
+//         { role: "user", content: flashcardPrompt }
+//       ],
+//       temperature: 0.3,
+//     });
+
+//     const aiText = response?.choices?.[0]?.message?.content;
+
+//     if (!aiText) {
+//       throw new Error("Perplexity returned empty flashcard response");
+//     }
+
+//     return JSON.parse(aiText);
+//   } catch (error) {
+//     console.error("Perplexity Flashcard Error:", error);
+//     throw error;
+//   }
+// };
+
+
+// function extractJSON(text) {
+//   return text
+//     .replace(/```json/gi, "")
+//     .replace(/```/g, "")
+//     .trim();
+// }
+
+// export const generateQuiz = async (prompt) => {
+//   try {
+//     const quizPrompt = `${prompt}`;
+
+//     const response = await client.chat.completions.create({
+//       model: "sonar-pro",
+//       messages: [
+//         {
+//           role: "system",
+//           content:
+//             "Return ONLY valid raw JSON. No markdown. No explanations."
+//         },
+//         { role: "user", content: quizPrompt }
+//       ],
+//       temperature: 0.3,
+//     });
+
+//     const aiText = response?.choices?.[0]?.message?.content;
+
+//     if (!aiText) {
+//       throw new Error("Perplexity returned empty quiz response");
+//     }
+
+//     const cleanJSON = extractJSON(aiText);
+//     const parsed = JSON.parse(cleanJSON);
+
+//     // Optional safety check
+//     if (!Array.isArray(parsed)) {
+//       throw new Error("AI did not return a JSON array");
+//     }
+
+//     return parsed;
+//   } catch (error) {
+//     console.error("Perplexity Quiz Error:", error);
+//     throw error;
+//   }
+// };
+
+
+// export const generateFeedback = async (prompt) => {
+//   try {
+//     const response = await client.chat.completions.create({
+//       model: "sonar-pro",
+//       messages: [{ role: "user", content: prompt }],
+//     });
+
+//     const content = response?.choices?.[0]?.message?.content;
+//     if (!content) {
+//       throw new Error("Perplexity returned empty feedback response");
+//     }
+
+//     // ✅ REMOVE markdown code fences if present
+//     const cleaned = content
+//       .replace(/```json/g, "")
+//       .replace(/```/g, "")
+//       .trim();
+
+//     return JSON.parse(cleaned);
+//   } catch (error) {
+//     console.error("Perplexity Feedback API Error:", error);
+//     throw error;
+//   }
+// };
+
+
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const model = genAI.getGenerativeModel({
+  model: "gemini-3-flash-preview",
+});
+
+/* COURSE OUTLINE */
 export const generateCourseOutline = async (prompt) => {
   try {
-    const response = await client.chat.completions.create({
-      model: "sonar-pro",       
-      messages: [
-        { role: "user", content: prompt }
-      ],
-      // optional Perplexity parameters:
-      // temperature: 0.7,
-      // max_tokens: 1000,
-    });
-
-    return response.choices[0].message.content;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
   } catch (err) {
-    console.error("Perplexity API Error:", err);
+    console.error("Gemini API Error:", err);
     throw err;
   }
 };
 
+/* -------------------------------------------------- */
+/* NOTES */
+/* -------------------------------------------------- */
 export const generateNotes = async (prompt) => {
   try {
-    const response = await client.chat.completions.create({
-      model: "sonar-pro",
-      messages: [
-        { role: "user", content: prompt }
-      ],
-    });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
 
-    if (!response?.choices?.[0]?.message?.content) {
-      throw new Error("Perplexity returned empty response");
-    }
+    const text = response.text();
+    if (!text) throw new Error("Gemini returned empty response");
 
-    return response.choices[0].message.content;
+    return text;
   } catch (error) {
-    console.error("Perplexity API Error:", error);
+    console.error("Gemini Notes Error:", error);
     throw error;
   }
 };
 
-
+/* FLASHCARDS */
 export const generateFlashcards = async (prompt) => {
   try {
     const flashcardPrompt = `
@@ -111,96 +270,68 @@ CONTENT:
 ${prompt}
 `;
 
-    const response = await client.chat.completions.create({
-      model: "sonar-pro",
-      messages: [
-        { role: "system", content: "You generate clean JSON study flashcards." },
-        { role: "user", content: flashcardPrompt }
-      ],
-      temperature: 0.3,
-    });
+    const result = await model.generateContent(flashcardPrompt);
+    const response = await result.response;
 
-    const aiText = response?.choices?.[0]?.message?.content;
+    const text = response.text();
+    if (!text) throw new Error("Gemini returned empty flashcard response");
 
-    if (!aiText) {
-      throw new Error("Perplexity returned empty flashcard response");
-    }
-
-    return JSON.parse(aiText);
+    const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    return JSON.parse(cleaned);
   } catch (error) {
-    console.error("Perplexity Flashcard Error:", error);
+    console.error("Gemini Flashcard Error:", error);
     throw error;
   }
 };
 
-
-function extractJSON(text) {
-  return text
-    .replace(/```json/gi, "")
-    .replace(/```/g, "")
-    .trim();
-}
-
+/* -------------------------------------------------- */
+/* QUIZ */
+/* -------------------------------------------------- */
 export const generateQuiz = async (prompt) => {
   try {
-    const quizPrompt = `${prompt}`;
+    const quizPrompt = `
+Return ONLY valid raw JSON array.
+No markdown.
+No explanations.
 
-    const response = await client.chat.completions.create({
-      model: "sonar-pro",
-      messages: [
-        {
-          role: "system",
-          content:
-            "Return ONLY valid raw JSON. No markdown. No explanations."
-        },
-        { role: "user", content: quizPrompt }
-      ],
-      temperature: 0.3,
-    });
+${prompt}
+`;
 
-    const aiText = response?.choices?.[0]?.message?.content;
+    const result = await model.generateContent(quizPrompt);
+    const response = await result.response;
 
-    if (!aiText) {
-      throw new Error("Perplexity returned empty quiz response");
-    }
+    const text = response.text();
+    if (!text) throw new Error("Gemini returned empty quiz response");
 
-    const cleanJSON = extractJSON(aiText);
-    const parsed = JSON.parse(cleanJSON);
+    const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    const parsed = JSON.parse(cleaned);
 
-    // Optional safety check
     if (!Array.isArray(parsed)) {
-      throw new Error("AI did not return a JSON array");
+      throw new Error("AI did not return JSON array");
     }
 
     return parsed;
   } catch (error) {
-    console.error("Perplexity Quiz Error:", error);
+    console.error("Gemini Quiz Error:", error);
     throw error;
   }
 };
 
-
+/* -------------------------------------------------- */
+/* FEEDBACK */
+/* -------------------------------------------------- */
 export const generateFeedback = async (prompt) => {
   try {
-    const response = await client.chat.completions.create({
-      model: "sonar-pro",
-      messages: [{ role: "user", content: prompt }],
-    });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
 
-    const content = response?.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error("Perplexity returned empty feedback response");
-    }
+    const text = response.text();
+    if (!text) throw new Error("Gemini returned empty feedback");
 
-    // ✅ REMOVE markdown code fences if present
-    const cleaned = content
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim();
-
+    const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
     return JSON.parse(cleaned);
   } catch (error) {
-    console.error("Perplexity Feedback API Error:", error);
+    console.error("Gemini Feedback Error:", error);
     throw error;
   }
 };
