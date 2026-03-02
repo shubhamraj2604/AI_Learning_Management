@@ -34,7 +34,7 @@ export default function DashboardLayout({
   return (
     <div className="flex">
       {/* Desktop Sidebar */}
-      <div className="block md:block w-64 fixed">
+      <div className="hidden md:block w-64 fixed">
         <Sidebar />
       </div>
 

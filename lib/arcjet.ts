@@ -47,3 +47,60 @@ export const ajStudyType = arcjet({
   ],
 });
 
+export const Student = arcjet({
+  key: process.env.ARCJET_KEY!,
+  rules: [
+    shield({ mode: "LIVE" }),
+
+    detectBot({
+      mode: "LIVE",
+      allow: ["CATEGORY:SEARCH_ENGINE"],
+    }),
+
+    tokenBucket({
+      mode: "LIVE",
+      capacity: 25,
+      refillRate: 15,
+      interval: 60, // 2 per minute
+    }),
+  ],
+});
+export const BasicUser = arcjet({
+  key: process.env.ARCJET_KEY!,
+  rules: [
+    shield({ mode: "LIVE" }),
+
+    detectBot({
+      mode: "LIVE",
+      allow: ["CATEGORY:SEARCH_ENGINE"],
+    }),
+
+    tokenBucket({
+      mode: "LIVE",
+      capacity: 10,
+      refillRate: 5,
+      interval: 60, // 2 per minute
+    }),
+  ],
+});
+
+
+export const Golduser = arcjet({
+  key: process.env.ARCJET_KEY!,
+  rules: [
+    shield({ mode: "LIVE" }),
+
+    detectBot({
+      mode: "LIVE",
+      allow: ["CATEGORY:SEARCH_ENGINE"],
+    }),
+
+    tokenBucket({
+      mode: "LIVE",
+      capacity: 100,
+      refillRate: 60,
+      interval: 60, // 2 per minute
+    }),
+  ],
+});
+

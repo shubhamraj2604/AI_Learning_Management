@@ -35,10 +35,10 @@ const router = useRouter();
     [fieldName]: fieldValue,
   }));
 };
-useEffect(() => {
-  console.log("formdata changed:", formdata);
-  console.log(user?.primaryEmailAddress?.emailAddress);
-}, [formdata]);
+// useEffect(() => {
+//   console.log("formdata changed:", formdata);
+//   console.log(user?.primaryEmailAddress?.emailAddress);
+// }, [formdata]);
 
 // Used to save input and generate  course layout using ai
 const GenerateCourseOutline = async() => {
@@ -55,7 +55,7 @@ const GenerateCourseOutline = async() => {
       router.push("/dashboard"); // or `/dashboard/${courseId}`
     }
  
-  console.log(result)
+  // console.log(result)
 }
 
   return (
