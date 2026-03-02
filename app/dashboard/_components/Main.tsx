@@ -22,7 +22,7 @@ function Main() {
 
       const res = await axios.get("/api/show-courses");
       setCourses(res.data);
-      console.log(res.data);
+      // console.log(res.data);
       toast.success("Courses loaded successfully", {
         id: toastId,
         className: "bg-blue-600",
