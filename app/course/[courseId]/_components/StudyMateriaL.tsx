@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   NotebookText,
   FileText,
@@ -19,12 +19,20 @@ type StudyMaterialProps = {
 
 type Status = "Generating" | "Ready";
 
+const SUPPORTED_GENERATE_TYPES = ["flashcard", "quiz"];
+
 function StudyMaterial({ courseId, course }: StudyMaterialProps) {
   const [StudyType, setStudyType] = useState<any>();
   const [statusMap, setStatusMap] = useState<Record<string, Status>>({});
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /* Generate Content  */
   const GenerateContent = async (studytype: string) => {
+    // Block unsupported types (e.g. Q&A) to prevent unnecessary requests
+    if (!SUPPORTED_GENERATE_TYPES.includes(studytype)) {
+      toast.error("This feature is not available yet");
+      return;
+    }
     // prevent duplicate request
     if (statusMap[studytype] === "Generating") return;
 
@@ -62,24 +70,35 @@ ${c.topics.join(", ")}
     }
   };
 
-const pollStatus = (studytype: string) => {
-  const interval = setInterval(async () => {
-    try {
-      const res = await axios.get("/api/generate-study-type-content", {
-        params: { courseId, studyType: studytype },
-      });
-
-      if (res.data.status === "Ready") {
-        setStatusMap((prev) => ({ ...prev, [studytype]: "Ready" }));
-        clearInterval(interval);
-        GetStudyType(); // refresh generated content
-      }
-    } catch {
-      clearInterval(interval);
-      toast.error("Polling failed");
+  const pollStatus = (studytype: string) => {
+    // Clear any existing poll to prevent multiple intervals
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
     }
-  }, 3000);
-};
+    pollIntervalRef.current = setInterval(async () => {
+      try {
+        const res = await axios.get("/api/generate-study-type-content", {
+          params: { courseId, studyType: studytype },
+        });
+
+        if (res.data.status === "Ready") {
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
+          setStatusMap((prev) => ({ ...prev, [studytype]: "Ready" }));
+          GetStudyType(); // refresh generated content
+        }
+      } catch {
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+        toast.error("Polling failed");
+      }
+    }, 3000);
+  };
 
 
   const GetStudyType = async () => {
@@ -104,6 +123,24 @@ const pollStatus = (studytype: string) => {
   useEffect(() => {
     if (courseId) GetStudyType();
   }, [courseId]);
+
+  // Poll for notes when course is still generating chapters
+  useEffect(() => {
+    if (!courseId || course?.status !== "Generating") return;
+    const notesInterval = setInterval(() => {
+      GetStudyType();
+    }, 5000);
+    return () => clearInterval(notesInterval);
+  }, [courseId, course?.status]);
+
+  // Cleanup poll interval on unmount to prevent unnecessary requests
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, []);
 
   const MaterialList = [
     {
@@ -133,6 +170,7 @@ const pollStatus = (studytype: string) => {
       icon: MessageSquare,
       path: "/qa",
       type: "qa",
+      disabled: true,
     },
   ];
 
@@ -143,15 +181,34 @@ const pollStatus = (studytype: string) => {
       <div className="grid grid-col-2 md:grid-cols-4 gap-5 my-5">
         {MaterialList.map((item) => {
           const Icon = item.icon;
+          const isDisabled = "disabled" in item && item.disabled;
+
+          // For notes: only show View when ALL chapters are generated
+          const expectedChapterCount = course?.courseLayout?.chapters?.length ?? 0;
+          const notesReady =
+            item.type === "notes" &&
+            StudyType?.notes?.length === expectedChapterCount &&
+            expectedChapterCount > 0;
+
+          // For notes: also show "Generating" when course is still generating notes
+          const notesGenerating =
+            item.type === "notes" &&
+            course?.status === "Generating" &&
+            !notesReady;
+
           const isEmpty =
-            !StudyType?.[item.type] ||
-            StudyType[item.type].length === 0;
+            item.type === "notes"
+              ? !notesReady
+              : !StudyType?.[item.type] || StudyType[item.type].length === 0;
+
+          const isGenerating =
+            notesGenerating || statusMap[item.type] === "Generating";
 
           return (
             <div
               key={item.name}
               className={`flex flex-col items-center p-5 border shadow-md rounded-lg
-              ${isEmpty && "grayscale"}`}
+              ${(isEmpty || isDisabled) && "grayscale"}`}
             >
               {Icon && <Icon className="w-12 h-12 text-red-700 mb-3" />}
               <h2 className="font-medium mt-2">{item.name}</h2>
@@ -159,8 +216,16 @@ const pollStatus = (studytype: string) => {
                 {item.desc}
               </p>
 
-              {isEmpty ? (
-                statusMap[item.type] === "Generating" ? (
+              {isDisabled ? (
+                <Button
+                  className="mt-3 bg-amber-400 w-full"
+                  variant="outline"
+                  disabled
+                >
+                  Coming Soon
+                </Button>
+              ) : isEmpty ? (
+                isGenerating ? (
                   <Button
                     className="mt-3 bg-amber-400 w-full flex items-center gap-2"
                     variant="outline"
@@ -174,6 +239,7 @@ const pollStatus = (studytype: string) => {
                     className="mt-3 bg-amber-400 w-full"
                     variant="outline"
                     onClick={() => GenerateContent(item.type)}
+                    disabled={isGenerating}
                   >
                     Generate
                   </Button>

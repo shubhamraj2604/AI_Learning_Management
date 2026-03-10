@@ -34,5 +34,5 @@ export const Study_Type_Content_Table = pgTable('studyTypeContent' , {
     courseId:varchar().notNull(),
     content:json(),
     type:varchar().notNull(),
-    status:varchar().default('Genearting')
+    status:varchar().default('Generating')
 })

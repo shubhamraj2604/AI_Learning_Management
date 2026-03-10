@@ -41,8 +41,15 @@ function Course() {
   };
 
   useEffect(() => {
-      if (courseId) getCourseDetails();
-  },[courseId]); 
+    if (courseId) getCourseDetails();
+  }, [courseId]);
+
+  // Poll for course status when still generating notes
+  useEffect(() => {
+    if (!courseId || !course || course.status !== "Generating") return;
+    const interval = setInterval(() => getCourseDetails(), 5000);
+    return () => clearInterval(interval);
+  }, [courseId, course?.status]); 
 
  if (loading) {
   return (

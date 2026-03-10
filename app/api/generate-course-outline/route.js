@@ -141,7 +141,7 @@ Generate the full response in ONE output and stop.
         difficultyLevel: difficulty,
         courseLayout: aiResult,
         createdBy,
-        status: "Completed",
+        status: "Generating",
       })
       .returning();
 
