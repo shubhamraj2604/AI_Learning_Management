@@ -1,9 +1,10 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
-import { Loader, Loader2Icon, RefreshCw } from "lucide-react";
+import { Loader2Icon, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import Feedback from "./_components/Feedback";
 
@@ -21,34 +22,117 @@ type Feedbackanswer = WrongAnswer & {
 
 function QuizSection() {
   const { courseId } = useParams();
-  `Format that we received from backend
-  options = [
-     'questions':
-     'options':[],
-     'correctAnswer'  
-  
-  ]`;
-
   const [options, setquizoptions] = useState<any[]>([]);
-
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
   const [loading, setloading] = useState(false);
-  const generatequiz = async () => {
+  const [generating, setGenerating] = useState(false);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const loadQuiz = useCallback(async () => {
     try {
-      setloading(true);
       const result = await axios.post("/api/study-type", {
         courseId,
         studyType: "quiz",
       });
-      console.log(result.data[0]?.content);
-      toast.success("Quiz loaded successfully");
-      setquizoptions(result.data[0]?.content || []);
-    } catch (error) {
-      toast("Error loading quiz");
-      console.log(error);
+      const content = result.data[0]?.content;
+      if (Array.isArray(content) && content.length > 0) {
+        setquizoptions(content);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }, [courseId]);
+
+  const checkAndLoadQuiz = useCallback(async () => {
+    if (!courseId) return;
+    setloading(true);
+    try {
+      const hasQuiz = await loadQuiz();
+      if (hasQuiz) {
+        toast.success("Quiz loaded successfully");
+      }
+    } catch {
+      toast.error("Error loading quiz");
     } finally {
       setloading(false);
+      setInitialCheckDone(true);
     }
-  };
+  }, [courseId, loadQuiz]);
+
+  const handleGenerateQuiz = useCallback(async () => {
+    if (!courseId || generating) return;
+    setGenerating(true);
+    try {
+      const courseResp = await axios.get("/api/show-courses", {
+        params: { courseId },
+      });
+      const course = courseResp.data?.result;
+      const chapters = course?.courseLayout?.chapters;
+      if (!chapters?.length) {
+        toast.error("No chapters found");
+        setGenerating(false);
+        return;
+      }
+      const chapterContent = chapters
+        .map(
+          (c: any) => `
+Chapter ${c.chapter_number}: ${c.chapter_title}
+Summary: ${c.chapter_summary}
+Topics:
+${c.topics?.join(", ") ?? ""}
+`
+        )
+        .join("\n\n");
+
+      await axios.post("/api/generate-study-type-content", {
+        courseId,
+        type: "quiz",
+        chapter: chapterContent.trim(),
+      });
+
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = setInterval(async () => {
+        try {
+          const res = await axios.get("/api/generate-study-type-content", {
+            params: { courseId, studyType: "quiz" },
+          });
+          if (res.data?.status === "Ready") {
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
+            const hasQuiz = await loadQuiz();
+            if (hasQuiz) {
+              toast.success("Quiz ready!");
+            }
+            setGenerating(false);
+          }
+        } catch {
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
+          toast.error("Quiz generation failed");
+          setGenerating(false);
+        }
+      }, 3000);
+    } catch (error) {
+      toast.error("Failed to generate quiz");
+      setGenerating(false);
+    }
+  }, [courseId, generating, loadQuiz]);
+
+  useEffect(() => {
+    if (courseId) checkAndLoadQuiz();
+  }, [courseId, checkAndLoadQuiz]);
+
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
+  }, []);
 
   type SelectedAnswers = {
     [questionIndex: number]: number;
@@ -149,19 +233,50 @@ const getFeedback = async (wrong: WrongAnswer[]) => {
      }
 }
 
-  useEffect(() => {
-    if (courseId) generatequiz();
-  }, [courseId]);
-
-  if (loading || feedbackloading) {
+  if (!initialCheckDone || loading || feedbackloading) {
     return (
       <div className="flex items-center justify-center mt-20 gap-2">
-        {/* <RefreshCw className="w-5 h-5 animate-spin" /> */}
         <Loader2Icon className="animate-spin" />
         <span className="font-bold">Loading...</span>
       </div>
     );
   }
+
+  if (options.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center mt-20 gap-4">
+        <h2 className="text-2xl font-bold text-gray-800">Quiz Section</h2>
+        <p className="text-gray-500 text-center">
+          No quiz available yet. Generate one to get started.
+        </p>
+        {generating ? (
+          <Button
+            className="bg-amber-400"
+            variant="outline"
+            disabled
+          >
+            <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+            Generating Quiz...
+          </Button>
+        ) : (
+          <div className="flex gap-3">
+            <Button
+              className="bg-amber-400"
+              variant="outline"
+              onClick={handleGenerateQuiz}
+              disabled={generating}
+            >
+              Generate Quiz
+            </Button>
+            <Link href={`/course/${courseId}`}>
+              <Button variant="outline">Back to Course</Button>
+            </Link>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex gap-5 items-center">

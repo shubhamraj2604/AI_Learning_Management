@@ -32,6 +32,14 @@ export async function POST(req) {
   const { chapter, courseId, type } = await req.json();
   console.log(type);
 
+  // Block unsupported types (e.g. Q&A) to prevent unnecessary requests
+  if (type !== "flashcard" && type !== "quiz") {
+    return NextResponse.json(
+      { error: "Unsupported study type. Only flashcard and quiz are supported." },
+      { status: 400 }
+    );
+  }
+
   let prompt;
   if (type === "flashcard") {
     prompt = `Generate the flashcard on +${chapter}  in json format with front back content, maximum 15`;
