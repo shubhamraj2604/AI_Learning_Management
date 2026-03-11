@@ -93,7 +93,7 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 - **PostgreSQL**
 
 ### AI & Automation
-- **Perplexity AI** for content generation
+- **Gemini AI** for content generation
 - **Inngest** for background AI jobs
 - **Arcjet** for rate limiting and security
 
