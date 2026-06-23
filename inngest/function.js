@@ -5,8 +5,7 @@ import {USER_TABLE , Chapter_Notes_Table , Study_Material_Table , Study_Type_Con
 import { generateFlashcards, generateNotes, generateQuiz } from "../configs/AiModel";
 
 export const helloWorld = inngest.createFunction(
-  { id: "hello-world" },
-  { event: "test/hello.world" },
+  { id: "hello-world", triggers: { event: "test/hello.world" } },
   async ({ event, step }) => {
     await step.sleep("wait-a-moment", "1s");
     return { message: `Hello ${event.data.email}!` };
@@ -15,8 +14,7 @@ export const helloWorld = inngest.createFunction(
 
 
 export const CreateNewUser = inngest.createFunction(
-  {id : "New-User"},
-  {event: "user.create" },
+  { id: "New-User", triggers: { event: "user.create" } },
   async({event , step}) => {
     const {user} = event.data
      const result = await step.run('Check User and create New User if not exist', async() => {
@@ -29,7 +27,7 @@ export const CreateNewUser = inngest.createFunction(
     const userResult = await db
       .insert(USER_TABLE)
       .values({
-        userName: user?.fullName,
+        userName: user?.fullName || user?.primaryEmailAddress?.emailAddress || "New User",
         email: user?.primaryEmailAddress?.emailAddress,
       })
       .returning({ id: USER_TABLE.id });
@@ -46,8 +44,7 @@ export const CreateNewUser = inngest.createFunction(
 
 // Used to generate notes
 export const createNotes = inngest.createFunction(
-  { id: "generate-course" },
-  { event: "notes.generate" },
+  { id: "generate-course", triggers: { event: "notes.generate" } },
   async ({ event, step }) => {
     const { course } = event.data;
     const chapters = course?.courseLayout?.chapters;
@@ -139,15 +136,15 @@ ${JSON.stringify(chapter)}
 
 // Used To generate Flashcards , Quiz , Q/A
 export const GenerateStudyTypeContent = inngest.createFunction(
-   {id:'Generate Study Content'},
-   {event:'studyType.content'},
-   
+   { id: 'Generate Study Content', triggers: { event: 'studyType.content' } },
    async({event , step}) => {
     const {studyType , prompt , courseId , recordId}  = event.data;
     
-    const Flashcardairesult = await step.run('Generate Flashcard Using AI',async() => {
+    const Flashcardairesult = await step.run('Generate Content Using AI',async() => {
+         if (studyType === 'flashcard') {
+           return await generateFlashcards(prompt);
+         }
          const aiResult = await generateQuiz(prompt);
-        //  console.log(aiResult )
          return aiResult; 
     })
 

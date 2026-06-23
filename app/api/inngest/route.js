@@ -4,6 +4,7 @@ import { CreateNewUser, helloWorld ,createNotes , GenerateStudyTypeContent} from
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
+  servePath: "/api/inngest",
   functions: [
     helloWorld,
     CreateNewUser, // <-- This is where you'll always add all your functions

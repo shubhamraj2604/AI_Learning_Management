@@ -9,6 +9,7 @@ import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { Loader } from 'lucide-react';
 import { useRouter } from "next/navigation";
+import { toast } from 'react-hot-toast';
   type FormData = {
     studyType: string;
     topic: string;
@@ -44,18 +45,24 @@ const router = useRouter();
 const GenerateCourseOutline = async() => {
   setloading(true)
   const courseId = uuidv4();
-  const result = await axios.post('/api/generate-course-outline' , {
-    courseId:courseId,
-    ...formdata,
-    createdBy:user?.primaryEmailAddress?.emailAddress
-  });
+  try {
+    const result = await axios.post('/api/generate-course-outline' , {
+      courseId:courseId,
+      ...formdata,
+      createdBy:user?.primaryEmailAddress?.emailAddress
+    });
 
-  setloading(false)
-   if (result.status === 200) {
-      router.push("/dashboard"); // or `/dashboard/${courseId}`
+    if (result.status === 200) {
+      toast.success("Course outline generated successfully!");
+      router.push("/dashboard");
     }
- 
-  // console.log(result)
+  } catch (error: any) {
+    console.error("Failed to generate course outline:", error);
+    const errorMsg = error.response?.data?.error || "Failed to generate course outline";
+    toast.error(errorMsg);
+  } finally {
+    setloading(false);
+  }
 }
 
   return (

@@ -19,7 +19,7 @@ type StudyMaterialProps = {
 
 type Status = "Generating" | "Ready";
 
-const SUPPORTED_GENERATE_TYPES = ["flashcard", "quiz"];
+const SUPPORTED_GENERATE_TYPES = ["quiz", "flashcard"];
 
 function StudyMaterial({ courseId, course }: StudyMaterialProps) {
   const [StudyType, setStudyType] = useState<any>();
