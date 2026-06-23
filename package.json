@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "inngest:dev": "npx -y inngest-cli@latest dev -u http://localhost:3000/api/inngest"
   },
   "dependencies": {
     "@arcjet/inspect": "^1.0.0",
@@ -26,7 +27,7 @@
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.0",
     "gsap": "^3.14.2",
-    "inngest": "^3.47.0",
+    "inngest": "^4.8.0",
     "lucide-react": "^0.556.0",
     "mime": "^4.1.0",
     "next": "16.0.7",
@@ -37,6 +38,7 @@
     "react-bits": "^1.0.5",
     "react-dom": "19.2.0",
     "react-hot-toast": "^2.6.0",
+    "stripe": "^22.2.2",
     "tailwind-merge": "^3.4.0",
     "three": "^0.167.1",
     "uuid": "^13.0.0",

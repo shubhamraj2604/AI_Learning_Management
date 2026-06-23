@@ -34,6 +34,11 @@ function Sidebar() {
     const path = usePathname()
 
     const courses = useCourseStore((s) => s.courses);
+    const plan = useCourseStore((s) => s.plan);
+
+    const maxCredits = plan === "Gold" ? 100 : plan === "Student" ? 15 : 5;
+    const progressValue = maxCredits > 0 ? (courses / maxCredits) * 100 : 0;
+    const remainingCredits = Math.max(0, maxCredits - courses);
 
   return (
     <div className='h-screen shadow-md  p-5'>
@@ -61,9 +66,9 @@ function Sidebar() {
     </div>
 
     <div className='border bg-slate-100 rounded-lg p-3 absolute bottom-10 w-[85%]'>
-        <h2 className='text-lg'>Available Credits : {courses}</h2>
-        <Progress value={30}/>
-        <h2 className='tex-sm'>1 out of {courses} credits used</h2>
+        <h2 className='text-lg'>Available Credits : {remainingCredits}</h2>
+        <Progress value={progressValue}/>
+        <h2 className='text-sm'>{courses} out of {maxCredits} credits used</h2>
         <Link href = {'/dashboard/upgrade'} className='text-blue-800 text-xs mt-3'>Upgrade to create more</Link>        
     </div>
     </div>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import db from "@/configs/db";
-import { Study_Material_Table } from "@/configs/schema";
+import { Study_Material_Table, USER_TABLE } from "@/configs/schema";
 import { eq, sql} from "drizzle-orm";
 
 export async function POST(req) {
@@ -22,7 +22,16 @@ export async function POST(req) {
     .from(Study_Material_Table)
     .where(eq(Study_Material_Table.createdBy, email));
 
-    console.log(count)
+  const userRecord = await db
+    .select()
+    .from(USER_TABLE)
+    .where(eq(USER_TABLE.email, email))
+    .limit(1);
 
-  return NextResponse.json({ count });
+  const plan = userRecord[0]?.plan || "Basic";
+  const isMember = userRecord[0]?.isMember || false;
+
+  console.log(count)
+
+  return NextResponse.json({ count, plan, isMember });
 }

@@ -19,6 +19,8 @@ export default function DashboardLayout({
 
    const { user, isLoaded } = useUser();
   const setCourses = useCourseStore((s) => s.setCourses);
+  const setPlan = useCourseStore((s) => s.setPlan);
+  const setIsMember = useCourseStore((s) => s.setIsMember);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -27,7 +29,11 @@ export default function DashboardLayout({
     if (!email) return;
 
     axios.post("/api/get-courseno", { email })
-      .then(res => setCourses(res.data.count ?? 0));
+      .then(res => {
+        setCourses(res.data.count ?? 0);
+        setPlan(res.data.plan ?? "Basic");
+        setIsMember(res.data.isMember ?? false);
+      });
   }, [isLoaded]);
 
 

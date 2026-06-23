@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { generateCourseOutline } from "@/configs/AiModel";
 import db from "@/configs/db";
-import { Study_Material_Table } from "@/configs/schema";
+import { Study_Material_Table, USER_TABLE } from "@/configs/schema";
+import { eq, sql } from "drizzle-orm";
 import { inngest } from "../../../inngest/client";
 import {aj} from "@/lib/arcjet";
 import { auth } from "@clerk/nextjs/server";
@@ -48,6 +49,30 @@ if (process.env.ARCJET_KEY) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
+      );
+    }
+
+    // Verify plan limits before generation
+    const userRecord = await db
+      .select()
+      .from(USER_TABLE)
+      .where(eq(USER_TABLE.email, createdBy))
+      .limit(1);
+
+    const userPlan = userRecord[0]?.plan || "Basic";
+    const maxCourses = userPlan === "Gold" ? 100 : userPlan === "Student" ? 15 : 5;
+
+    const [{ count }] = await db
+      .select({
+        count: sql`count(*)`.mapWith(Number),
+      })
+      .from(Study_Material_Table)
+      .where(eq(Study_Material_Table.createdBy, createdBy));
+
+    if (count >= maxCourses) {
+      return NextResponse.json(
+        { error: "Credit limit exceeded. Please upgrade your plan." },
+        { status: 403 }
       );
     }
 
