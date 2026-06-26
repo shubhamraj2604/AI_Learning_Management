@@ -160,7 +160,7 @@ Generate the full response in ONE output and stop.
     const [dbResult] = await db
       .insert(Study_Material_Table)
       .values({
-        courseId,
+        id: courseId,        // UUID from frontend is now the PK
         courseType: studyType,
         topic,
         difficultyLevel: difficulty,
