@@ -187,7 +187,7 @@ ${c.topics.join(", ")}
           const expectedChapterCount = course?.courseLayout?.chapters?.length ?? 0;
           const notesReady =
             item.type === "notes" &&
-            StudyType?.notes?.length === expectedChapterCount &&
+            (StudyType?.notes?.length ?? 0) >= expectedChapterCount &&
             expectedChapterCount > 0;
 
           // For notes: also show "Generating" when course is still generating notes

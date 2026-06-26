@@ -116,7 +116,7 @@ ${JSON.stringify(chapter)}
 
         await db.insert(Chapter_Notes_Table).values({
           chapterId: index,
-          courseId: course.courseId,
+          courseId: course.id,
           notes: aiResp,
         });
       }
@@ -127,7 +127,7 @@ ${JSON.stringify(chapter)}
       await db
         .update(Study_Material_Table)
         .set({ status: "Ready" })
-        .where(eq(Study_Material_Table.courseId, course.courseId));
+        .where(eq(Study_Material_Table.id, course.id));
     });
 
     return { status: "completed" };

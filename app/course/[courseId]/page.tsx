@@ -10,9 +10,8 @@ import ChapterList from "./_components/ChapterList";
 import { Loader, RefreshCw } from "lucide-react";
 
 interface Course {
-  id: number;
-  courseId: string;
-  courseLayout: any; // or CourseLayout
+  id: string;          // UUID primary key (was serial int before schema change)
+  courseLayout: any;
   difficultyLevel: string;
   status: string;
 }

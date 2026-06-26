@@ -97,7 +97,7 @@ function Main() {
                   Generating...
                 </Button>
               ) : (
-                <Link href={`/course/${course.courseId}`}>
+                <Link href={`/course/${course.id}`}>
                   <Button className="text-sm hover:underline">
                     View →
                   </Button>

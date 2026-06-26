@@ -19,7 +19,7 @@ export async function GET(req) {
     const course = await db
       .select()
       .from(Study_Material_Table)
-      .where(eq(Study_Material_Table.courseId, courseId));
+      .where(eq(Study_Material_Table.id, courseId));
 
     return NextResponse.json({ result: course[0] });
   }
