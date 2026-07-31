@@ -1,7 +1,7 @@
 import { Chapter_Notes_Table , Study_Type_Content_Table } from "@/configs/schema";
 import { NextResponse } from "next/server";
 import  db  from "@/configs/db";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 
 
@@ -37,6 +37,7 @@ export async function POST(req) {
 
     return NextResponse.json({
       notes,
+      flashcard: flashCardResult,
       flashCard: flashCardResult,
       quiz: quizResult,
       qa: null,
@@ -55,7 +56,16 @@ export async function POST(req) {
     .from(Study_Type_Content_Table)
     .where(eq(Study_Type_Content_Table.type , studyType))
     .where(eq(Study_Type_Content_Table.courseId , courseId))
+    .orderBy(desc(Study_Type_Content_Table.id))
     return NextResponse.json(quiz)
+  }else if(studyType === 'flashcard'){
+    const flashcards = await db
+    .select()
+    .from(Study_Type_Content_Table)
+    .where(eq(Study_Type_Content_Table.type , studyType))
+    .where(eq(Study_Type_Content_Table.courseId , courseId))
+    .orderBy(desc(Study_Type_Content_Table.id))
+    return NextResponse.json(flashcards)
   }
 
   return NextResponse.json({ error: "Invalid study type" }, { status: 400 });

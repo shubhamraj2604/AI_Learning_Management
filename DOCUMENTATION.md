@@ -338,7 +338,7 @@ Inngest webhook for background jobs.
 2. Calls `generateQuiz()` (Gemini) with `prompt`
 3. Updates `studyTypeContent` with `content` and `status: "Ready"`
 
-**Note:** Both flashcards and quiz use `generateQuiz()` in the current implementation; prompts differ per `studyType`.
+**Note:** Flashcards now use a dedicated `generateFlashcards()` flow, while quiz content still uses `generateQuiz()`.
 
 ---
 
@@ -352,7 +352,7 @@ Inngest webhook for background jobs.
 | `/course/[courseId]`      | `Course`, `CourseIntroCard`, `StudyMaterial`, `ChapterList` | Course detail and materials |
 | `/course/[courseId]/notes`| `ViewNotes`         | Chapter notes viewer (prev/next)                  |
 | `/course/[courseId]/quiz` | `QuizSection`       | Quiz with scoring and feedback                   |
-| `/course/[courseId]/flashcard` | (if exists)    | Flashcard viewer                                 |
+| `/course/[courseId]/flashcards` | Flashcards viewer                              |
 | `/course/[courseId]/qa`   | (if exists)         | Q&A interface                                    |
 
 ### StudyMaterial
