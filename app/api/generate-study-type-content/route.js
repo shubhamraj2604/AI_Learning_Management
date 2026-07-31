@@ -4,7 +4,7 @@ import { inngest } from "../../../inngest/client";
 import { NextResponse } from "next/server";
 import { ajStudyType } from "@/lib/arcjet";
 import { auth } from "@clerk/nextjs/server";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 export async function POST(req) {
   let clerkUserId;
@@ -40,9 +40,52 @@ export async function POST(req) {
     );
   }
 
+  const [existingRecord] = await db
+    .select({
+      id: Study_Type_Content_Table.id,
+      status: Study_Type_Content_Table.status,
+    })
+    .from(Study_Type_Content_Table)
+    .where(
+      and(
+        eq(Study_Type_Content_Table.courseId, courseId),
+        eq(Study_Type_Content_Table.type, type)
+      )
+    )
+    .orderBy(desc(Study_Type_Content_Table.id))
+    .limit(1);
+
+  if (existingRecord) {
+    return NextResponse.json({
+      id: existingRecord.id,
+      status: existingRecord.status,
+      skipped: true,
+    });
+  }
+
   let prompt;
   if (type === "flashcard") {
-    prompt = `Generate the flashcard on +${chapter}  in json format with front back content, maximum 15`;
+    prompt = `
+Generate study flashcards from the chapter content below.
+
+STRICT RULES:
+- Create at most 15 flashcards
+- Each card must have only front and back fields
+- Keep the front short and focused
+- Keep the back concise, accurate, and easy to revise
+- Output ONLY valid JSON
+- Do not add markdown or explanation text
+
+OUTPUT FORMAT:
+{
+  "flashcards": [
+    { "front": "", "back": "" }
+  ]
+}
+
+CHAPTER CONTENT:
+${JSON.stringify(chapter).slice(1, -1)}
+`;
   } else if (type === "quiz") {
     prompt = `You are generating quiz questions for an AI learning platform.
 
@@ -82,8 +125,9 @@ ${JSON.stringify(chapter).slice(1, -1)}
 
   // trigger
   console.log(result[0].id);
+  const eventName = type === "flashcard" ? "flashcard.generate" : "studyType.content";
   inngest.send({
-    name: "studyType.content",
+    name: eventName,
     data: {
       studyType: type,
       prompt: prompt,
@@ -116,7 +160,9 @@ export async function GET(req) {
         eq(Study_Type_Content_Table.courseId, courseId),
         eq(Study_Type_Content_Table.type, studyType)
       )
-    );
+    )
+    .orderBy(desc(Study_Type_Content_Table.id))
+    .limit(1);
 
   return NextResponse.json(row ?? { status: "Generating" });
 }

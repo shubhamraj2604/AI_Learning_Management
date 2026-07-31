@@ -6,45 +6,45 @@ import Image from "next/image";
 import Link from "next/link";
 import Particles from "@/components/Particles";
 import SplitText from "@/components/SplitText";
-import Magnet from "@/components/Magnet"
+import Magnet from "@/components/Magnet";
 import GradientText from "@/components/GradientText";
+import Flashcards from "@/components/Flashcards";
+import { ArrowRight, Brain, Sparkles, BookOpen, Target } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen overflow-hidden flex flex-col relative">
-      {/* Background Particles Container */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+    <div className="min-h-screen overflow-hidden bg-[linear-gradient(135deg,_#f8fbff_0%,_#eef4ff_45%,_#fdf2ff_100%)] text-slate-900">
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-70">
         <Particles
-          particleColors={['#000000']}
-          particleCount={150}
-          particleSpread={5}
+          particleColors={["#6366f1", "#8b5cf6", "#14b8a6"]}
+          particleCount={120}
+          particleSpread={6}
           speed={0.2}
-          particleBaseSize={80}
+          particleBaseSize={70}
           moveParticlesOnHover={true}
           alphaParticles={true}
           disableRotation={false}
         />
       </div>
 
-      <nav className="relative z-20 flex justify-between items-center px-8 py-4 backdrop-blur-md bg-gray-300 shadow-lg border-b border-white/50">
-        <h1 className="">
+      <nav className="relative z-20 flex items-center justify-between px-6 py-4 backdrop-blur-xl md:px-10">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-500 text-white shadow-lg">
+            <Brain className="h-5 w-5" />
+          </div>
           <GradientText
-colors={[
-  "#2ee7a3", // bright teal / medium-dark
-  "#3b5fff", // bright indigo
-  "#2ee7a3", // repeat teal
-  "#3b5fff", // repeat indigo
-  "#2ee7a3"  // repeat teal
-]}
-  animationSpeed={3}
-  showBorder={false}
-  className="custom-class text-3xl font-extrabold"
-       > Easy Study</GradientText>
-        </h1>
+            colors={["#2ee7a3", "#3b5fff", "#2ee7a3", "#3b5fff", "#2ee7a3"]}
+            animationSpeed={3}
+            showBorder={false}
+            className="text-2xl font-extrabold tracking-tight"
+          >
+            Easy Study
+          </GradientText>
+        </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Link href="/dashboard">
-            <Button className="bg-yellow-500 text-black hover:bg-yellow-400">
+            <Button className="rounded-full bg-slate-900 px-5 text-white hover:bg-slate-800">
               Sign In
             </Button>
           </Link>
@@ -52,148 +52,125 @@ colors={[
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative z-20 flex flex-col md:flex-row items-center justify-between px-10 md:px-20 py-20 md:py-32 gap-12 flex-1 bg-linear-to-r from-indigo-300 via-indigo-300 to-purple-400">
-        <div className="flex-1 space-y-6 text-white/90 drop-shadow-lg">
+      <main className="relative z-20 px-6 pb-20 md:px-10 lg:px-16">
+        <section className="grid items-center gap-10 rounded-[2rem] border border-white/70 bg-white/70 px-6 py-10 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl md:grid-cols-[1.05fr_0.95fr] md:px-10 md:py-16 lg:px-14">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700">
+              <Sparkles className="h-4 w-4" />
+              AI-powered learning platform
+            </div>
+
             <SplitText
-  text="Learn Smarter with AI"
-  className="text-5xl font-extrabold text-center text-black"
-  delay={100}
-  duration={0.6}
-  ease="power3.out"
-  splitType="chars"
-  from={{ opacity: 0, y: 40 }}
-  to={{ opacity: 1, y: 0 }}
-  threshold={0.1}
-  rootMargin="-100px"
-  textAlign="center"
-/>
-
-          <p className="text-lg md:text-xl text-gray-700 max-w-xl drop-shadow-md">
-            Personalized learning powered by AI. Get tailored study plans,
-            notes, and guidance to achieve your goals faster.
-          </p>
-
-          <div className="flex gap-4">
-            <Link href = '/dashboard'>
-            <Magnet padding={50} disabled={false} magnetStrength={0.50}>
-            <Button size="lg" className="bg-indigo-700 text-white hover:bg-indigo-800 shadow-xl drop-shadow-lg">
-              Get Started
-            </Button>
-            </Magnet>
-            </Link>
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-white/80 text-black hover:bg-white/20 backdrop-blur-sm"
-              >
-              Explore Courses
-              </Button>
-          </div>
-        </div>
-
-        {/* Hero Image with subtle overlay particles */}
-        <div className="flex-1 relative w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
-          <Image
-            src="/hero.webp"
-            alt="AI Learning Illustration"
-            fill
-            className="object-cover"
-            priority
-          />
-          {/* Subtle particles overlay on image */}
-        </div>
-          <div className="absolute inset-0 opacity-30 pointer-events-none">
-            <Particles
-              particleColors={['#0f172a']}
-              particleCount={200}
-              particleSpread={35}
-              speed={0.9}
-              particleBaseSize={300}
-              moveParticlesOnHover={true}
-              alphaParticles={true}
+              text="Learn Smarter with AI"
+              className="text-4xl font-black leading-tight text-slate-900 md:text-6xl"
+              delay={80}
+              duration={0.6}
+              ease="power3.out"
+              splitType="chars"
+              from={{ opacity: 0, y: 32 }}
+              to={{ opacity: 1, y: 0 }}
+              threshold={0.1}
+              rootMargin="-80px"
+              textAlign="left"
             />
-          </div>
-      </section>
 
-       {/* 2nd section */}
-      <section className="relative z-20 px-8 py-20 ">
-        <div className="absolute inset-0 opacity-10">
-          <Particles
-            particleColors={['#0f172a']}
-            particleCount={500}
-            particleSpread={200}
-            speed={0.03}
-            particleBaseSize={120}
-            moveParticlesOnHover={true}
-            alphaParticles={true}
-          />
-        </div>
-        
-        <div className="relative max-w-6xl mx-auto">
-          <h3 className="text-3xl md:text-4xl font-bold text-center mb-12 text-indigo-700">
-            Why Choose AI LMS?
-          </h3>
+            <p className="max-w-2xl text-lg leading-8 text-slate-600">
+              Build personalized study plans, generate notes, quiz yourself with confidence, and stay motivated with a learning experience that adapts to you.
+            </p>
 
-          <div className="grid md:grid-cols-3 gap-10">
-            <div className="bg-white/70 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 backdrop-blur-sm border border-white/50 hover:-translate-y-2">
-              <h4 className="font-semibold text-xl mb-4 text-indigo-700">
-                Personalized Study Plans
-              </h4>
-              <p className="text-gray-600 leading-relaxed">
-                AI analyzes your learning style to create optimized study schedules.
-              </p>
+            <div className="flex flex-wrap gap-4">
+              <Link href="/dashboard">
+                <Magnet padding={60} disabled={false} magnetStrength={0.5}>
+                  <Button size="lg" className="rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-6 text-white shadow-lg hover:from-indigo-700 hover:to-violet-700">
+                    Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Magnet>
+              </Link>
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-full border-slate-300 bg-white/80 px-6 text-slate-700 hover:bg-slate-50"
+              >
+                Explore Courses
+              </Button>
             </div>
 
-            <div className="bg-white/70 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 backdrop-blur-sm border border-white/50 hover:-translate-y-2">
-              <h4 className="font-semibold text-xl mb-4 text-indigo-700">
-                Instant Notes & Summaries
-              </h4>
-              <p className="text-gray-600 leading-relaxed">
-                Generate concise notes and summaries for any subject, instantly.
-              </p>
-            </div>
-
-            <div className="bg-white/70 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 backdrop-blur-sm border border-white/50 hover:-translate-y-2">
-              <h4 className="font-semibold text-xl mb-4 text-indigo-700">
-                Track Your Progress
-              </h4>
-              <p className="text-gray-600 leading-relaxed">
-                Monitor your learning journey and get AI-driven suggestions to improve.
-              </p>
+            <div className="flex flex-wrap gap-4 pt-2 text-sm text-slate-600">
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-2">
+                <BookOpen className="h-4 w-4 text-indigo-600" />
+                Structured lessons
+              </div>
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-2">
+                <Target className="h-4 w-4 text-indigo-600" />
+                Smart quizzes
+              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ================= CTA SECTION ================= */}
-      <section className="relative z-20 px-8 py-20 bg-linear-to-r from-indigo-700 via-indigo-800 to-purple-800 text-white text-center overflow-hidden">
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <Particles
-            particleColors={['#c7d2fe', '#e0e7ff']}
-            particleCount={100}
-            particleSpread={30}
-            speed={0.06}
-            particleBaseSize={50}
-            moveParticlesOnHover={false}
-            alphaParticles={true}
-          />
-        </div>
-        
-        <div className="relative max-w-4xl mx-auto">
-          <h3 className="text-3xl md:text-5xl font-bold mb-6 drop-shadow-lg">
-            Ready to Boost Your Learning?
-          </h3>
+          <div className="relative mx-auto w-full max-w-xl">
+            <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-indigo-400/30 to-violet-500/20 blur-3xl" />
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-slate-950 p-3 shadow-2xl">
+              <Image
+                src="/hero.webp"
+                alt="AI learning illustration"
+                width={900}
+                height={700}
+                className="h-[360px] w-full rounded-[1.4rem] object-cover md:h-[420px]"
+                priority
+              />
+            </div>
+          </div>
+        </section>
 
-          <p className="mb-12 text-lg md:text-xl text-white/90 drop-shadow-md leading-relaxed">
-            Join thousands of learners leveraging AI for smarter learning.
+        <section className="mt-10 rounded-[2rem] border border-slate-200/70 bg-white/70 p-8 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl md:p-10">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-8 text-center">
+              <h3 className="text-3xl font-bold text-slate-900 md:text-4xl">Why learners choose Easy Study</h3>
+              <p className="mx-auto mt-3 max-w-2xl text-slate-600">
+                Every feature is crafted to help you study faster, understand better, and stay consistent.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {[
+                {
+                  title: "Personalized Study Plans",
+                  description: "AI adapts to your pace and creates a clear path for what to learn next.",
+                },
+                {
+                  title: "Instant Notes & Summaries",
+                  description: "Turn lengthy topics into concise, memorable notes in seconds.",
+                },
+                {
+                  title: "Progress Tracking",
+                  description: "Monitor your growth and stay motivated with smarter learning insights.",
+                },
+              ].map((item) => (
+                <div key={item.title} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-7 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
+                  <h4 className="text-xl font-semibold text-slate-900">{item.title}</h4>
+                  <p className="mt-3 text-slate-600">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <Flashcards />
+        </section>
+
+        <section className="mt-10 rounded-[2rem] bg-gradient-to-r from-indigo-700 via-indigo-800 to-violet-800 px-8 py-16 text-center text-white shadow-[0_24px_90px_rgba(67,56,202,0.28)]">
+          <h3 className="text-3xl font-bold md:text-5xl">Ready to boost your learning?</h3>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-indigo-100">
+            Join learners who are creating better study habits with AI-powered guidance.
           </p>
-
-          <Button size="lg" className="bg-white text-indigo-700 hover:bg-white/90 text-lg px-12 py-8 font-semibold shadow-2xl drop-shadow-2xl hover:scale-105 transition-all">
-            Start Learning Now
-          </Button>
-        </div>
-      </section>
+          <Link href="/dashboard">
+            <Button size="lg" className="mt-8 rounded-full bg-white px-8 py-6 text-lg font-semibold text-indigo-700 hover:bg-white/90">
+              Start Learning Now
+            </Button>
+          </Link>
+        </section>
+      </main>
     </div>
   );
 }

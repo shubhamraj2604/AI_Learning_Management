@@ -154,7 +154,7 @@ ${c.topics.join(", ")}
       name: "Flashcards",
       desc: "Use flashcards to revise concepts",
       icon: FileText,
-      path: "/flashcard",
+      path: "/flashcards",
       type: "flashcard",
     },
     {

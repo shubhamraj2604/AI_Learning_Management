@@ -134,16 +134,36 @@ ${JSON.stringify(chapter)}
   }
 );
 
-// Used To generate Flashcards , Quiz , Q/A
+// Used to generate flashcards
+export const createFlashcards = inngest.createFunction(
+   { id: 'Generate Flashcards', triggers: { event: 'flashcard.generate' } },
+   async({event , step}) => {
+    const {prompt , courseId , recordId}  = event.data;
+
+    const flashcardResult = await step.run('Generate Flashcards Using AI',async() => {
+         return await generateFlashcards(prompt);
+    });
+
+    await step.run('Save Flashcards to DB' , async () => {
+        await db.update(Study_Type_Content_Table).set({
+          content:flashcardResult?.flashcards ?? flashcardResult,
+          status:'Ready'
+        }).where(eq(Study_Type_Content_Table.id , recordId));
+
+        return 'data inserted';
+    });
+
+    return { success: true };
+   }
+);
+
+// Used to generate quiz content
 export const GenerateStudyTypeContent = inngest.createFunction(
    { id: 'Generate Study Content', triggers: { event: 'studyType.content' } },
    async({event , step}) => {
     const {studyType , prompt , courseId , recordId}  = event.data;
     
     const Flashcardairesult = await step.run('Generate Content Using AI',async() => {
-         if (studyType === 'flashcard') {
-           return await generateFlashcards(prompt);
-         }
          const aiResult = await generateQuiz(prompt);
          return aiResult; 
     })
