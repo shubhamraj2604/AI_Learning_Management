@@ -6,7 +6,8 @@ import {
   json,
   integer,
   text,
-  uuid
+  uuid,
+  timestamp,
 } from "drizzle-orm/pg-core";
 import { pgTable } from "drizzle-orm/pg-core";
 
@@ -16,6 +17,8 @@ export const USER_TABLE = pgTable("users", {
   email: varchar().notNull(),
   isMember: boolean().default(false),
   plan: varchar().default("Basic"),
+  creditsUsed: integer("creditsUsed").default(0).notNull(),
+  creditsResetAt: timestamp("creditsResetAt", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const Study_Material_Table = pgTable("studyMaterial", {
@@ -51,4 +54,33 @@ export const Study_Type_Content_Table = pgTable("studyTypeContent", {
   content: json(),
   type: varchar().notNull(),
   status: varchar().default("Generating"),
+});
+
+export const Learning_Spark_Table = pgTable("learningSpark", {
+  id: serial().primaryKey(),
+  courseId: uuid("courseId")
+    .references(() => Study_Material_Table.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
+    .notNull(),
+  chapterNumber: integer().notNull(),
+  type: varchar().notNull(),
+  title: varchar().notNull(),
+  content: text().notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const User_Learning_Spark_Table = pgTable("userLearningSpark", {
+  id: serial().primaryKey(),
+  userId: varchar().notNull(),
+  nuggetId: integer("nuggetId")
+    .references(() => Learning_Spark_Table.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
+    .notNull(),
+  isFavorite: boolean().default(false),
+  seenAt: timestamp("seenAt", { withTimezone: true }),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
 });

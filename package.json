@@ -38,6 +38,7 @@
     "react-bits": "^1.0.5",
     "react-dom": "19.2.0",
     "react-hot-toast": "^2.6.0",
+    "resend": "^6.19.0",
     "stripe": "^22.2.2",
     "tailwind-merge": "^3.4.0",
     "three": "^0.167.1",

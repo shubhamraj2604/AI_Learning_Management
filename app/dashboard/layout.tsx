@@ -21,6 +21,8 @@ export default function DashboardLayout({
   const setCourses = useCourseStore((s) => s.setCourses);
   const setPlan = useCourseStore((s) => s.setPlan);
   const setIsMember = useCourseStore((s) => s.setIsMember);
+  const setCreditsUsed = useCourseStore((s) => s.setCreditsUsed);
+  const setCreditsResetAt = useCourseStore((s) => s.setCreditsResetAt);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -33,6 +35,8 @@ export default function DashboardLayout({
         setCourses(res.data.count ?? 0);
         setPlan(res.data.plan ?? "Basic");
         setIsMember(res.data.isMember ?? false);
+        setCreditsUsed(res.data.creditsUsed ?? 0);
+        setCreditsResetAt(res.data.creditsResetAt ?? null);
       });
   }, [isLoaded]);
 

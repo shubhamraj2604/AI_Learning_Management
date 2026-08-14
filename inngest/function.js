@@ -1,8 +1,22 @@
 import { inngest } from "./client";
 import db from '@/configs/db'
-import { eq } from 'drizzle-orm';
-import {USER_TABLE , Chapter_Notes_Table , Study_Material_Table , Study_Type_Content_Table} from '@/configs/schema'
-import { generateFlashcards, generateNotes, generateQuiz } from "../configs/AiModel";
+import { eq, sql } from 'drizzle-orm';
+import {USER_TABLE , Chapter_Notes_Table , Study_Material_Table , Study_Type_Content_Table, Learning_Spark_Table} from '@/configs/schema'
+import { generateFlashcards, generateNotes, generateQuiz, generateLearningSparks } from "../configs/AiModel";
+import { Resend } from 'resend';
+
+// Add your Resend API Key here or in your .env.local file as RESEND_API_KEY
+const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key_to_prevent_crash'); 
+
+function stripHtml(input = "") {
+  return input
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 export const helloWorld = inngest.createFunction(
   { id: "hello-world", triggers: { event: "test/hello.world" } },
@@ -10,6 +24,22 @@ export const helloWorld = inngest.createFunction(
     await step.sleep("wait-a-moment", "1s");
     return { message: `Hello ${event.data.email}!` };
   },
+);
+
+// Runs on 1st of every month at midnight UTC — resets all user credits to 0
+export const resetMonthlyCredits = inngest.createFunction(
+  { id: "reset-monthly-credits", triggers: { cron: "0 0 1 * *" } },
+  async ({ step }) => {
+    await step.run("reset-all-user-credits", async () => {
+      await db
+        .update(USER_TABLE)
+        .set({
+          creditsUsed: 0,
+          creditsResetAt: sql`now()`,
+        });
+    });
+    return { success: true, message: "Monthly credits reset for all users" };
+  }
 );
 
 
@@ -130,7 +160,136 @@ ${JSON.stringify(chapter)}
         .where(eq(Study_Material_Table.id, course.id));
     });
 
+    await inngest.send({
+      name: "learning-spark.generate",
+      data: {
+        courseId: course.id,
+      },
+    });
+
     return { status: "completed" };
+  }
+);
+
+export const generateLearningSparksForCourse = inngest.createFunction(
+  { id: "generate-learning-sparks", triggers: { event: "learning-spark.generate" } },
+  async ({ event, step }) => {
+    const { courseId } = event.data;
+
+    const [course] = await step.run("Load course data", async () => {
+      return await db
+        .select()
+        .from(Study_Material_Table)
+        .where(eq(Study_Material_Table.id, courseId));
+    });
+
+    if (!course?.courseLayout?.chapters?.length) {
+      throw new Error("No course chapters found for learning sparks");
+    }
+
+    const chapterNotes = await step.run("Load chapter notes", async () => {
+      return await db
+        .select()
+        .from(Chapter_Notes_Table)
+        .where(eq(Chapter_Notes_Table.courseId, courseId));
+    });
+
+    const notesByChapter = new Map(
+      chapterNotes.map((note) => [note.chapterId, stripHtml(note.notes || "")])
+    );
+
+    const chapterContext = course.courseLayout.chapters.map((chapter, index) => {
+      const chapterNumber = chapter.chapter_number ?? index + 1;
+      return {
+        chapter_number: chapterNumber,
+        chapter_title: chapter.chapter_title,
+        chapter_summary: chapter.chapter_summary,
+        notes: notesByChapter.get(index) || "",
+      };
+    });
+
+    const prompt = `
+You are generating short dashboard learning cards for an AI LMS.
+
+TASK:
+Read the chapter material carefully and extract the most valuable facts a student should remember after studying it.
+
+OUTPUT RULES:
+- Return EXACTLY 10 cards.
+- Return ONLY valid JSON.
+- Do not include markdown, code fences, commentary, or extra keys.
+- Every card must be between 25 and 45 words.
+- One concept per card.
+- Do not duplicate ideas.
+- Do not invent facts that are not supported by the chapter material.
+
+CARD CATEGORIES:
+- Important Point
+- Interview Tip
+- Exam Favorite
+- Common Mistake
+- Quick Recall
+- Best Practice
+- Definition
+- Performance Insight
+- Real World Example
+- Memory Trick
+
+CONTENT RULES:
+- Prefer concepts students often forget.
+- Highlight interview traps when relevant.
+- Include practical insights instead of textbook definitions alone.
+- Use a category only if it fits; otherwise choose the closest one.
+
+OUTPUT FORMAT:
+{
+  "knowledge_cards": [
+    {
+      "chapter_number": 1,
+      "type": "Important Point",
+      "title": "Short dashboard title",
+      "content": "25 to 45 word insight"
+    }
+  ]
+}
+
+COURSE TITLE:
+${course.courseLayout?.course_title || course.topic}
+
+CHAPTER MATERIAL:
+${JSON.stringify(chapterContext, null, 2)}
+`;
+
+    const aiText = await step.run("Generate learning sparks", async () => {
+      return await generateLearningSparks(prompt);
+    });
+
+    let aiResult;
+    try {
+      const cleaned = aiText.replace(/```json/gi, "").replace(/```/g, "").trim();
+      aiResult = JSON.parse(cleaned);
+    } catch (error) {
+      throw new Error(`Invalid learning spark JSON: ${aiText}`);
+    }
+
+    const cards = Array.isArray(aiResult?.knowledge_cards) ? aiResult.knowledge_cards : [];
+    if (cards.length !== 10) {
+      throw new Error(`Expected 10 learning sparks, received ${cards.length}`);
+    }
+
+    await step.run("Save learning sparks", async () => {
+      await db.insert(Learning_Spark_Table).values(
+        cards.map((card, index) => ({
+          courseId,
+          chapterNumber: card.chapter_number || index + 1,
+          type: card.type,
+          title: card.title,
+          content: card.content,
+        }))
+      );
+    });
+
+    return { status: "completed", count: cards.length };
   }
 );
 
@@ -155,6 +314,32 @@ export const createFlashcards = inngest.createFunction(
 
     return { success: true };
    }
+);
+
+export const handleFunctionFailure = inngest.createFunction(
+  { id: "handle-function-failure", triggers: { event: "inngest/function.failed" } },
+  async ({ event, step }) => {
+    const error = event.data.error;
+    const failedFunctionId = event.data.function_id;
+    const originalEvent = event.data.event; // The event that triggered the failed run
+
+    await step.run('send-failure-email', async () => {
+      await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+        to: process.env.RESEND_ALERT_EMAIL || 'thorp452@gmail.com',
+        subject: `[Alert] Inngest Function Failed: ${failedFunctionId}`,
+        html: `
+          <h2>Inngest Function Failed</h2>
+          <p><strong>Function ID:</strong> ${failedFunctionId}</p>
+          <p><strong>Error Message:</strong> ${error?.message || 'Unknown error'}</p>
+          <p><strong>Original Event:</strong> ${originalEvent?.name}</p>
+          <pre>${JSON.stringify(originalEvent?.data, null, 2)}</pre>
+        `
+      });
+    });
+
+    return { success: true };
+  }
 );
 
 // Used to generate quiz content

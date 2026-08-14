@@ -9,6 +9,7 @@ function ChapterList({course}: {course :any}) {
             {chapters?.map((item : any) => {
                 return (
                     <div key = {item.chapter_number}
+                    id={`chapter-${item.chapter_number}`}
                     className='flex gap-5 items-center p-4 border shadow-md'
                     >
                         <h2 className='font-extrabold'>{item.chapter_number}</h2>

@@ -1,24 +1,17 @@
 import { NextResponse } from "next/server";
 import db from "@/configs/db";
 import { Study_Material_Table, USER_TABLE } from "@/configs/schema";
-import { eq, sql} from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export async function POST(req) {
   const { email } = await req.json();
 
-  console.log(email);
-
   if (!email) {
-    return NextResponse.json(
-      { error: "Email is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Email is required" }, { status: 400 });
   }
-    console.log(Study_Material_Table.createdBy);
+
   const [{ count }] = await db
-    .select({
-      count: sql`count(*)`.mapWith(Number),
-    })
+    .select({ count: sql`count(*)`.mapWith(Number) })
     .from(Study_Material_Table)
     .where(eq(Study_Material_Table.createdBy, email));
 
@@ -30,8 +23,8 @@ export async function POST(req) {
 
   const plan = userRecord[0]?.plan || "Basic";
   const isMember = userRecord[0]?.isMember || false;
+  const creditsUsed = userRecord[0]?.creditsUsed ?? 0;
+  const creditsResetAt = userRecord[0]?.creditsResetAt ?? null;
 
-  console.log(count)
-
-  return NextResponse.json({ count, plan, isMember });
+  return NextResponse.json({ count, plan, isMember, creditsUsed, creditsResetAt });
 }
