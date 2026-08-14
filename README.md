@@ -21,14 +21,24 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 - Automatically generated study notes for better understanding
 - Clean and readable format for learners
 
-### 🧩 Flashcards & Q/A *(In Progress)*
-- Flashcards for quick revision
-- Question & Answer mode for active recall
+### 🧩 Flashcards
+- AI-generated flashcards (up to 15 per chapter) for quick revision
+- Generated on demand from course content
 
 ### 📊 Intelligent Quiz Feedback
 - After quiz submission, AI analyzes **wrong answers**
 - Provides **personalized feedback**
 - Feedback is generated only after user submission
+
+### 🔥 Study Spark
+- Daily study prompt on the dashboard to encourage consistent revision
+
+### 💳 Subscriptions & Payments
+- **Stripe Checkout** integration for Student / Gold membership tiers
+- Webhook-driven membership upgrades — user plan is updated in the database on successful payment
+
+### 📧 Email Alerts
+- **Resend**-based email notifications for background job failures (e.g. Inngest AI generation errors)
 
 ---
 
@@ -100,6 +110,13 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 ### Authentication
 - **Clerk**
 
+### Payments & Notifications
+- **Stripe** for checkout and subscription billing
+- **Resend** for transactional/alert emails
+
+### Deployment
+- **Docker**-ready (Dockerfile included)
+
 ---
 
 ## 🛠️ Key Highlights
@@ -115,8 +132,11 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 - ✅ Course Creation
 - ✅ Quiz Generation
 - ✅ Notes Generation
+- ✅ Flashcards
 - ✅ AI Feedback for Wrong Answers
-- 🚧 Flashcards & Q/A (In Progress)
+- ✅ Stripe Subscriptions (Student / Gold tiers)
+- ✅ Email Failure Alerts
+- 🚧 Q/A Mode (In Progress)
 - 🚧 Profile Section (In Progress)
 - 🚧 User Analytics for study performance (In Progress)
 
@@ -127,7 +147,8 @@ An AI-powered Learning Management System that enables **course creation, quizzes
 - Progress tracking & analytics dashboard
 - Flashcard spaced repetition system
 - Course sharing & collaboration
-- **Docker & AWS deployment** for scalable production
+- **Langfuse** integration to trace and monitor AI responses (not yet added)
+- **AWS deployment** for scalable production
 
 ---
 
