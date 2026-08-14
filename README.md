@@ -215,7 +215,7 @@ flowchart TD
     GEM --> LF["🔭 Langfuse<br/>traces · tokens · latency"]
     ING --> DB[("🐘 Neon Postgres<br/>via Drizzle ORM")]
     ING -->|on failure| RS["📧 Resend alert email"]
-    UI -->|"poll: Generating → Ready"|  API
+    UI -->|"poll: Generating → Ready"| API
     API --> DB
     STR["💳 Stripe Checkout"] -->|webhook| API
     API -->|upgrade plan| DB
