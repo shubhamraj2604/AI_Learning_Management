@@ -205,7 +205,7 @@ await langfuse.flushAsync();
 
 ```mermaid
 flowchart TD
-    U([👤 User]) --> UI["Next.js App Router UI<br/>React 19 · Tailwind · shadcn"]
+    U([👤 User]) --> UI["Next.js App Router UI<br/>React 19 · Tailwind"]
     UI -->|debounced action| API["API Routes"]
     API --> CLERK{{"🔐 Clerk<br/>auth context"}}
     API --> AJ{{"🪣 Arcjet<br/>token-bucket rate limit"}}
