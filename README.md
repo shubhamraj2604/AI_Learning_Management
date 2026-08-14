@@ -202,24 +202,24 @@ await langfuse.flushAsync();
 ---
 
 ## 🏛️ Architecture
-
 ```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 40, "rankSpacing": 60}}}%%
 flowchart TD
+    linkStyle default interpolate basis
     U([👤 User]) --> UI["Next.js App Router UI<br/>React 19 · Tailwind"]
-    UI -->|debouncing| API["API Routes"]
+    UI -->|debounced request| API["API Routes"]
+    API -->|202 returns immediately| UI
+    UI -.->|poll: Generating → Ready| API
     API --> CLERK{{"🔐 Clerk<br/>auth context"}}
     API --> AJ{{"🪣 Arcjet<br/>token-bucket rate limit"}}
-    API -->|"202 · returns immediately"| UI
     API -->|emit event| ING["⚙️ Inngest<br/>background jobs"]
     ING --> GEM["🤖 Google Gemini"]
     GEM --> LF["🔭 Langfuse<br/>traces · tokens · latency"]
     ING --> DB[("🐘 Neon Postgres<br/>via Drizzle ORM")]
     ING -->|on failure| RS["📧 Resend alert email"]
-    UI -->|"poll: Generating → Ready"| API
     API --> DB
     STR["💳 Stripe Checkout"] -->|webhook| API
     API -->|upgrade plan| DB
-
     style GEM fill:#8E75B2,color:#fff
     style LF fill:#0A0A0A,color:#fff
     style ING fill:#4636F5,color:#fff
