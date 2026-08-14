@@ -52,7 +52,7 @@ if (process.env.ARCJET_KEY) {
       );
     }
 
-    // Verify plan limits before generation
+    // Check credit limit using creditsUsed column
     const userRecord = await db
       .select()
       .from(USER_TABLE)
@@ -60,18 +60,12 @@ if (process.env.ARCJET_KEY) {
       .limit(1);
 
     const userPlan = userRecord[0]?.plan || "Basic";
-    const maxCourses = userPlan === "Gold" ? 100 : userPlan === "Student" ? 15 : 5;
+    const maxCredits = userPlan === "Gold" ? 100 : userPlan === "Student" ? 15 : 5;
+    const creditsUsed = userRecord[0]?.creditsUsed ?? 0;
 
-    const [{ count }] = await db
-      .select({
-        count: sql`count(*)`.mapWith(Number),
-      })
-      .from(Study_Material_Table)
-      .where(eq(Study_Material_Table.createdBy, createdBy));
-
-    if (count >= maxCourses) {
+    if (creditsUsed >= maxCredits) {
       return NextResponse.json(
-        { error: "Credit limit exceeded. Please upgrade your plan." },
+        { error: "Credit limit exceeded. Please upgrade your plan or wait for monthly reset." },
         { status: 403 }
       );
     }
@@ -170,7 +164,13 @@ Generate the full response in ONE output and stop.
       })
       .returning();
 
-    // 7️⃣ Trigger Inngest for chapter notes
+    // 7️⃣ Increment creditsUsed by 1
+    await db
+      .update(USER_TABLE)
+      .set({ creditsUsed: sql`${USER_TABLE.creditsUsed} + 1` })
+      .where(eq(USER_TABLE.email, createdBy));
+
+    // 8️⃣ Trigger Inngest for chapter notes
     await inngest.send({
       name: "notes.generate",
       data: {
@@ -178,7 +178,7 @@ Generate the full response in ONE output and stop.
       },
     });
 
-    // 8️⃣ Success response
+    // 9️⃣ Success response
     return NextResponse.json({
       success: true,
       data: dbResult,

@@ -1,7 +1,7 @@
 "use client";
 import DashBoardHeader from "@/app/dashboard/_components/DashBoardHeader";
 import axios from "axios";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import CourseIntroCard from "./_components/CourseIntroCard";
@@ -19,6 +19,7 @@ interface Course {
 
 function Course() {
   const { courseId } = useParams();
+  const searchParams = useSearchParams();
   const [course, setcourse] = useState<Course | null>(null);
   const [loading , setLoading ] = useState<any>(false);
   const getCourseDetails = async () => {
@@ -42,6 +43,23 @@ function Course() {
   useEffect(() => {
     if (courseId) getCourseDetails();
   }, [courseId]);
+
+  useEffect(() => {
+    const chapter = searchParams.get("chapter");
+    if (!chapter) return;
+
+    const element = document.getElementById(`chapter-${chapter}`);
+    if (!element) return;
+
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
+    element.classList.add("ring-2", "ring-blue-500", "ring-offset-2");
+
+    const timeout = setTimeout(() => {
+      element.classList.remove("ring-2", "ring-blue-500", "ring-offset-2");
+    }, 2500);
+
+    return () => clearTimeout(timeout);
+  }, [searchParams, course]);
 
   // Poll for course status when still generating notes
   useEffect(() => {

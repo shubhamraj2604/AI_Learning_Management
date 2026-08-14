@@ -335,3 +335,21 @@ export const generateFeedback = async (prompt) => {
     throw error;
   }
 };
+
+/* -------------------------------------------------- */
+/* LEARNING SPARKS */
+/* -------------------------------------------------- */
+export const generateLearningSparks = async (prompt) => {
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+
+    const text = response.text();
+    if (!text) throw new Error("Gemini returned empty learning spark response");
+
+    return text;
+  } catch (error) {
+    console.error("Gemini Learning Spark Error:", error);
+    throw error;
+  }
+};

@@ -1,6 +1,6 @@
 import { serve } from "inngest/next";
 import { inngest } from "../../../inngest/client";
-import { CreateNewUser, helloWorld ,createNotes , createFlashcards, GenerateStudyTypeContent} from "../../../inngest/function";
+import { CreateNewUser, helloWorld, createNotes, createFlashcards, GenerateStudyTypeContent, generateLearningSparksForCourse, handleFunctionFailure, resetMonthlyCredits } from "../../../inngest/function";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -10,6 +10,9 @@ export const { GET, POST, PUT } = serve({
     CreateNewUser, // <-- This is where you'll always add all your functions
     createNotes,
     createFlashcards,
-    GenerateStudyTypeContent
+    GenerateStudyTypeContent,
+    generateLearningSparksForCourse,
+    handleFunctionFailure,
+    resetMonthlyCredits,
   ],
 });
