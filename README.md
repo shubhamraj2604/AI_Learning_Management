@@ -206,7 +206,7 @@ await langfuse.flushAsync();
 ```mermaid
 flowchart TD
     U([👤 User]) --> UI["Next.js App Router UI<br/>React 19 · Tailwind"]
-    UI -->|debounced action| API["API Routes"]
+    UI -->|debouncing| API["API Routes"]
     API --> CLERK{{"🔐 Clerk<br/>auth context"}}
     API --> AJ{{"🪣 Arcjet<br/>token-bucket rate limit"}}
     API -->|"202 · returns immediately"| UI
@@ -215,7 +215,7 @@ flowchart TD
     GEM --> LF["🔭 Langfuse<br/>traces · tokens · latency"]
     ING --> DB[("🐘 Neon Postgres<br/>via Drizzle ORM")]
     ING -->|on failure| RS["📧 Resend alert email"]
-    UI -->|"poll: Generating → Ready"| API
+    UI -->|"poll: Generating → Ready"|  API
     API --> DB
     STR["💳 Stripe Checkout"] -->|webhook| API
     API -->|upgrade plan| DB
