@@ -1,12 +1,11 @@
 import { inngest } from "./client";
 import db from '@/configs/db'
 import { eq, sql } from 'drizzle-orm';
-import {USER_TABLE , Chapter_Notes_Table , Study_Material_Table , Study_Type_Content_Table, Learning_Spark_Table} from '@/configs/schema'
+import { USER_TABLE, Chapter_Notes_Table, Study_Material_Table, Study_Type_Content_Table, Learning_Spark_Table } from '@/configs/schema'
 import { generateFlashcards, generateNotes, generateQuiz, generateLearningSparks } from "../configs/AiModel";
 import { Resend } from 'resend';
 
-// Add your Resend API Key here or in your .env.local file as RESEND_API_KEY
-const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key_to_prevent_crash'); 
+const resend = new Resend(process.env.RESEND_API_KEY); // Add your Resend API Key here
 
 function stripHtml(input = "") {
   return input
@@ -45,27 +44,27 @@ export const resetMonthlyCredits = inngest.createFunction(
 
 export const CreateNewUser = inngest.createFunction(
   { id: "New-User", triggers: { event: "user.create" } },
-  async({event , step}) => {
-    const {user} = event.data
-     const result = await step.run('Check User and create New User if not exist', async() => {
-    const result = await db
-    .select()
-    .from(USER_TABLE)
-    .where(eq(USER_TABLE.email, user?.primaryEmailAddress?.emailAddress));
+  async ({ event, step }) => {
+    const { user } = event.data
+    const result = await step.run('Check User and create New User if not exist', async () => {
+      const result = await db
+        .select()
+        .from(USER_TABLE)
+        .where(eq(USER_TABLE.email, user?.primaryEmailAddress?.emailAddress));
 
-  if (result?.length === 0) {
-    const userResult = await db
-      .insert(USER_TABLE)
-      .values({
-        userName: user?.fullName || user?.primaryEmailAddress?.emailAddress || "New User",
-        email: user?.primaryEmailAddress?.emailAddress,
-      })
-      .returning({ id: USER_TABLE.id });
-      return userResult
-    }
-    return result
-     });
-   return 'Sucess';  
+      if (result?.length === 0) {
+        const userResult = await db
+          .insert(USER_TABLE)
+          .values({
+            userName: user?.fullName || user?.primaryEmailAddress?.emailAddress || "New User",
+            email: user?.primaryEmailAddress?.emailAddress,
+          })
+          .returning({ id: USER_TABLE.id });
+        return userResult
+      }
+      return result
+    });
+    return 'Sucess';
   },
 
   // step 2 -> To send email notification 
@@ -87,7 +86,7 @@ export const createNotes = inngest.createFunction(
     await step.run("Generate all chapter notes", async () => {
       for (let index = 0; index < chapters.length; index++) {
         const chapter = chapters[index];
-const prompt = `
+        const prompt = `
 You are generating high-quality exam-oriented study notes.
 
 STRICT REQUIREMENTS:
@@ -295,25 +294,25 @@ ${JSON.stringify(chapterContext, null, 2)}
 
 // Used to generate flashcards
 export const createFlashcards = inngest.createFunction(
-   { id: 'Generate Flashcards', triggers: { event: 'flashcard.generate' } },
-   async({event , step}) => {
-    const {prompt , courseId , recordId}  = event.data;
+  { id: 'Generate Flashcards', triggers: { event: 'flashcard.generate' } },
+  async ({ event, step }) => {
+    const { prompt, courseId, recordId } = event.data;
 
-    const flashcardResult = await step.run('Generate Flashcards Using AI',async() => {
-         return await generateFlashcards(prompt);
+    const flashcardResult = await step.run('Generate Flashcards Using AI', async () => {
+      return await generateFlashcards(prompt);
     });
 
-    await step.run('Save Flashcards to DB' , async () => {
-        await db.update(Study_Type_Content_Table).set({
-          content:flashcardResult?.flashcards ?? flashcardResult,
-          status:'Ready'
-        }).where(eq(Study_Type_Content_Table.id , recordId));
+    await step.run('Save Flashcards to DB', async () => {
+      await db.update(Study_Type_Content_Table).set({
+        content: flashcardResult?.flashcards ?? flashcardResult,
+        status: 'Ready'
+      }).where(eq(Study_Type_Content_Table.id, recordId));
 
-        return 'data inserted';
+      return 'data inserted';
     });
 
     return { success: true };
-   }
+  }
 );
 
 export const handleFunctionFailure = inngest.createFunction(
@@ -325,8 +324,8 @@ export const handleFunctionFailure = inngest.createFunction(
 
     await step.run('send-failure-email', async () => {
       await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
-        to: process.env.RESEND_ALERT_EMAIL || 'thorp452@gmail.com',
+        from: 'onboarding@resend.dev', // Add your verified sender email here (e.g. 'onboarding@resend.dev')
+        to: 'thorp452@gmail.com',   // Add your email address to receive alerts here
         subject: `[Alert] Inngest Function Failed: ${failedFunctionId}`,
         html: `
           <h2>Inngest Function Failed</h2>
@@ -344,25 +343,25 @@ export const handleFunctionFailure = inngest.createFunction(
 
 // Used to generate quiz content
 export const GenerateStudyTypeContent = inngest.createFunction(
-   { id: 'Generate Study Content', triggers: { event: 'studyType.content' } },
-   async({event , step}) => {
-    const {studyType , prompt , courseId , recordId}  = event.data;
-    
-    const Flashcardairesult = await step.run('Generate Content Using AI',async() => {
-         const aiResult = await generateQuiz(prompt);
-         return aiResult; 
+  { id: 'Generate Study Content', triggers: { event: 'studyType.content' } },
+  async ({ event, step }) => {
+    const { studyType, prompt, courseId, recordId } = event.data;
+
+    const Flashcardairesult = await step.run('Generate Content Using AI', async () => {
+      const aiResult = await generateQuiz(prompt);
+      return aiResult;
     })
 
     // Sve to Db
 
-    const DBResult = await step.run('Save to DB' , async () => {
-        const result = await db.update(Study_Type_Content_Table).set({
-          content:Flashcardairesult,
-          status:'Ready'
-        }).where(eq(Study_Type_Content_Table.id , recordId))
+    const DBResult = await step.run('Save to DB', async () => {
+      const result = await db.update(Study_Type_Content_Table).set({
+        content: Flashcardairesult,
+        status: 'Ready'
+      }).where(eq(Study_Type_Content_Table.id, recordId))
 
-        return 'data inserted'
+      return 'data inserted'
     })
     return { success: true };
-   }
+  }
 );

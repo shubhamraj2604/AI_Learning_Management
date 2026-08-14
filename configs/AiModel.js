@@ -207,47 +207,90 @@
 
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getLangfuse } from "@/lib/langfuse";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+const MODEL_NAME = "gemini-3-flash-preview";
+
 const model = genAI.getGenerativeModel({
-  model: "gemini-3-flash-preview",
+  model: MODEL_NAME,
 });
 
-/* COURSE OUTLINE */
-export const generateCourseOutline = async (prompt) => {
+// Helper — wraps a Gemini call in a Langfuse generation span so you can
+// see exactly what prompt went in, what came out, how long it took, and
+// whether it errored — all visible in the Langfuse dashboard.
+async function tracedGenerate({ name, input, generate }) {
+  const langfuse = getLangfuse();
+
+  const trace = langfuse.trace({ name });
+
+  const generation = trace.generation({
+    name,
+    model: MODEL_NAME,
+    input,
+    startTime: new Date(),
+  });
+
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    const output = await generate();
+
+    generation.end({
+      output,
+      endTime: new Date(),
+    });
+
+    await langfuse.flushAsync();
+    return output;
   } catch (err) {
-    console.error("Gemini API Error:", err);
+    generation.end({
+      endTime: new Date(),
+      level: "ERROR",
+      statusMessage: err?.message ?? String(err),
+    });
+
+    await langfuse.flushAsync();
     throw err;
   }
+}
+
+/* -------------------------------------------------- */
+/* COURSE OUTLINE */
+/* -------------------------------------------------- */
+export const generateCourseOutline = async (prompt) => {
+  return tracedGenerate({
+    name: "generate-course-outline",
+    input: prompt,
+    generate: async () => {
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      if (!text) throw new Error("Gemini returned empty response");
+      return text;
+    },
+  });
 };
 
 /* -------------------------------------------------- */
 /* NOTES */
 /* -------------------------------------------------- */
 export const generateNotes = async (prompt) => {
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-
-    const text = response.text();
-    if (!text) throw new Error("Gemini returned empty response");
-
-    return text;
-  } catch (error) {
-    console.error("Gemini Notes Error:", error);
-    throw error;
-  }
+  return tracedGenerate({
+    name: "generate-notes",
+    input: prompt,
+    generate: async () => {
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      if (!text) throw new Error("Gemini returned empty response");
+      return text;
+    },
+  });
 };
 
+/* -------------------------------------------------- */
 /* FLASHCARDS */
+/* -------------------------------------------------- */
 export const generateFlashcards = async (prompt) => {
-  try {
-    const flashcardPrompt = `
+  const flashcardPrompt = `
 You are an AI that generates study flashcards.
 RULES:
 - Generate MAXIMUM 15 flashcards
@@ -270,26 +313,25 @@ CONTENT:
 ${prompt}
 `;
 
-    const result = await model.generateContent(flashcardPrompt);
-    const response = await result.response;
+  return tracedGenerate({
+    name: "generate-flashcards",
+    input: flashcardPrompt,
+    generate: async () => {
+      const result = await model.generateContent(flashcardPrompt);
+      const text = result.response.text();
+      if (!text) throw new Error("Gemini returned empty flashcard response");
 
-    const text = response.text();
-    if (!text) throw new Error("Gemini returned empty flashcard response");
-
-    const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    return JSON.parse(cleaned);
-  } catch (error) {
-    console.error("Gemini Flashcard Error:", error);
-    throw error;
-  }
+      const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
+      return JSON.parse(cleaned);
+    },
+  });
 };
 
 /* -------------------------------------------------- */
 /* QUIZ */
 /* -------------------------------------------------- */
 export const generateQuiz = async (prompt) => {
-  try {
-    const quizPrompt = `
+  const quizPrompt = `
 Return ONLY valid raw JSON array.
 No markdown.
 No explanations.
@@ -297,59 +339,56 @@ No explanations.
 ${prompt}
 `;
 
-    const result = await model.generateContent(quizPrompt);
-    const response = await result.response;
+  return tracedGenerate({
+    name: "generate-quiz",
+    input: quizPrompt,
+    generate: async () => {
+      const result = await model.generateContent(quizPrompt);
+      const text = result.response.text();
+      if (!text) throw new Error("Gemini returned empty quiz response");
 
-    const text = response.text();
-    if (!text) throw new Error("Gemini returned empty quiz response");
+      const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
 
-    const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    const parsed = JSON.parse(cleaned);
+      if (!Array.isArray(parsed)) {
+        throw new Error("AI did not return JSON array");
+      }
 
-    if (!Array.isArray(parsed)) {
-      throw new Error("AI did not return JSON array");
-    }
-
-    return parsed;
-  } catch (error) {
-    console.error("Gemini Quiz Error:", error);
-    throw error;
-  }
+      return parsed;
+    },
+  });
 };
 
 /* -------------------------------------------------- */
 /* FEEDBACK */
 /* -------------------------------------------------- */
 export const generateFeedback = async (prompt) => {
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
+  return tracedGenerate({
+    name: "generate-feedback",
+    input: prompt,
+    generate: async () => {
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      if (!text) throw new Error("Gemini returned empty feedback");
 
-    const text = response.text();
-    if (!text) throw new Error("Gemini returned empty feedback");
-
-    const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    return JSON.parse(cleaned);
-  } catch (error) {
-    console.error("Gemini Feedback Error:", error);
-    throw error;
-  }
+      const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
+      return JSON.parse(cleaned);
+    },
+  });
 };
 
 /* -------------------------------------------------- */
 /* LEARNING SPARKS */
 /* -------------------------------------------------- */
 export const generateLearningSparks = async (prompt) => {
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-
-    const text = response.text();
-    if (!text) throw new Error("Gemini returned empty learning spark response");
-
-    return text;
-  } catch (error) {
-    console.error("Gemini Learning Spark Error:", error);
-    throw error;
-  }
+  return tracedGenerate({
+    name: "generate-learning-sparks",
+    input: prompt,
+    generate: async () => {
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      if (!text) throw new Error("Gemini returned empty learning spark response");
+      return text;
+    },
+  });
 };
