@@ -233,11 +233,12 @@ async function tracedGenerate({ name, input, generate }) {
   });
 
   try {
-    const output = await generate();
+    const { output, usage } = await generate();
 
     generation.end({
       output,
       endTime: new Date(),
+      usage: usage || undefined,
     });
 
     await langfuse.flushAsync();
@@ -265,7 +266,14 @@ export const generateCourseOutline = async (prompt) => {
       const result = await model.generateContent(prompt);
       const text = result.response.text();
       if (!text) throw new Error("Gemini returned empty response");
-      return text;
+      return {
+        output: text,
+        usage: {
+          input: result.response.usageMetadata?.promptTokenCount,
+          output: result.response.usageMetadata?.candidatesTokenCount,
+          total: result.response.usageMetadata?.totalTokenCount,
+        },
+      };
     },
   });
 };
@@ -281,7 +289,14 @@ export const generateNotes = async (prompt) => {
       const result = await model.generateContent(prompt);
       const text = result.response.text();
       if (!text) throw new Error("Gemini returned empty response");
-      return text;
+      return {
+        output: text,
+        usage: {
+          input: result.response.usageMetadata?.promptTokenCount,
+          output: result.response.usageMetadata?.candidatesTokenCount,
+          total: result.response.usageMetadata?.totalTokenCount,
+        },
+      };
     },
   });
 };
@@ -322,7 +337,14 @@ ${prompt}
       if (!text) throw new Error("Gemini returned empty flashcard response");
 
       const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
-      return JSON.parse(cleaned);
+      return {
+        output: JSON.parse(cleaned),
+        usage: {
+          input: result.response.usageMetadata?.promptTokenCount,
+          output: result.response.usageMetadata?.candidatesTokenCount,
+          total: result.response.usageMetadata?.totalTokenCount,
+        },
+      };
     },
   });
 };
@@ -354,7 +376,14 @@ ${prompt}
         throw new Error("AI did not return JSON array");
       }
 
-      return parsed;
+      return {
+        output: parsed,
+        usage: {
+          input: result.response.usageMetadata?.promptTokenCount,
+          output: result.response.usageMetadata?.candidatesTokenCount,
+          total: result.response.usageMetadata?.totalTokenCount,
+        },
+      };
     },
   });
 };
@@ -372,7 +401,14 @@ export const generateFeedback = async (prompt) => {
       if (!text) throw new Error("Gemini returned empty feedback");
 
       const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
-      return JSON.parse(cleaned);
+      return {
+        output: JSON.parse(cleaned),
+        usage: {
+          input: result.response.usageMetadata?.promptTokenCount,
+          output: result.response.usageMetadata?.candidatesTokenCount,
+          total: result.response.usageMetadata?.totalTokenCount,
+        },
+      };
     },
   });
 };
@@ -388,7 +424,14 @@ export const generateLearningSparks = async (prompt) => {
       const result = await model.generateContent(prompt);
       const text = result.response.text();
       if (!text) throw new Error("Gemini returned empty learning spark response");
-      return text;
+      return {
+        output: text,
+        usage: {
+          input: result.response.usageMetadata?.promptTokenCount,
+          output: result.response.usageMetadata?.candidatesTokenCount,
+          total: result.response.usageMetadata?.totalTokenCount,
+        },
+      };
     },
   });
 };

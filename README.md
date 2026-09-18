@@ -142,6 +142,8 @@ Next.js App Router + Tailwind 4 + shadcn/ui, with GSAP / Three.js / OGL powered 
 
 Generative features fail in ways normal backends don't: the request returns `200`, but the JSON is malformed, the outline is thin, or a single chapter quietly burns half your token budget. **Langfuse** makes those failures visible instead of invisible.
 
+![Langfuse Dashboard](langfuse_dashboard.png)
+
 ### What gets traced
 
 | Traced operation | What it tells you |
