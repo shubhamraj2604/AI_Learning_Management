@@ -28,6 +28,7 @@ export const helloWorld = inngest.createFunction(
 // Runs on 1st of every month at midnight UTC — resets all user credits to 0
 export const resetMonthlyCredits = inngest.createFunction(
   { id: "reset-monthly-credits", triggers: { cron: "0 0 1 * *" } },
+   // Minute 0, Hour 0, Day 1, Every month, Any weekday
   async ({ step }) => {
     await step.run("reset-all-user-credits", async () => {
       await db
